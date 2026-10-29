@@ -19,12 +19,12 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"routes": [{ "pattern": "flipword.chrpk.com", "custom_domain": true }],
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "flipword",
-			// Replace with the id printed by `wrangler d1 create flipword` before the first deploy.
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "a155b863-4e3b-4015-b207-01a6aa853dd2",
 			"migrations_dir": "migrations"
 		}
 	],
@@ -51,34 +51,6 @@
 		// and the DSA requires a point of contact for users and authorities.
 		"OPERATOR_NAME": "",
 		"CONTACT_EMAIL": ""
-	},
-	"env": {
-		// Separate Worker (flipword-dev) with its own database and bucket: `pnpm run deploy:dev`.
-		// Bindings and vars aren't inherited from the top level, so they're all repeated here.
-		"dev": {
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "flipword-dev",
-					"database_id": "e0b5208b-a260-40be-b1a6-44b90bfe788d",
-					"migrations_dir": "migrations"
-				}
-			],
-			"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flipword-dev-images" }],
-			"ratelimits": [
-				{
-					"name": "API_RATE_LIMITER",
-					"namespace_id": "1002",
-					"simple": { "limit": 600, "period": 60 }
-				}
-			],
-			"vars": {
-				// Email-only sign-in for testing; anyone with the URL can sign in as any address.
-				"DEV_LOGIN": "true",
-				"OPERATOR_NAME": "",
-				"CONTACT_EMAIL": ""
-			}
-		}
 	}
 	/**
 	 * Smart Placement
