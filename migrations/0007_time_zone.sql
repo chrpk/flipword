@@ -1,0 +1,1 @@
+ALTER TABLE `user_settings` ADD `time_zone` text;

@@ -1,0 +1,13 @@
+# Headers for the app's static files and pages (Workers static assets). API responses get theirs from
+# secureHeaders() in worker/index.ts.
+#
+# CSP notes: no inline scripts (the theme script is /theme-init.js); 'wasm-unsafe-eval' is for sql.js in the Anki
+# importer; img-src allows blob: for photo previews and the Google/Facebook profile picture hosts for avatars.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob: https://*.googleusercontent.com https://*.fbcdn.net https://*.fbsbx.com; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin

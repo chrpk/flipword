@@ -1,0 +1,10 @@
+BETTER_AUTH_URL=http://localhost:5173
+BETTER_AUTH_SECRET=replace-with-32+-random-chars
+DEV_LOGIN=true
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+# Shown on /privacy and /terms; in production set them in wrangler.jsonc "vars"
+OPERATOR_NAME=
+CONTACT_EMAIL=

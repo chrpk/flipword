@@ -1,0 +1,36 @@
+# Pre-approve build scripts for the packages C3 itself installs that need
+# them: `workerd` downloads the platform binary and `esbuild` downloads/
+# builds native bindings. Without these, pnpm 11+ aborts the install with
+# ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  esbuild: true
+  workerd: true
+
+# drizzle-kit's loader (@esbuild-kit/core-utils) pins esbuild 0.18, which has a dev-server advisory
+# (GHSA-67mh-4wv8-2f99). It only uses esbuild's transform API, which newer versions keep compatible.
+#
+# The latest miniflare (local Workers runtime, dev only) still pins an undici 7 release with advisories; this moves
+# it to the patched release. Drop it once miniflare catches up.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": "^0.25.0"
+  "miniflare>undici": "^7.30.1"
+
+# deepmerge (dev only, via vite-plugin-pwa → workbox-build → @rollup/plugin-node-resolve) has a prototype-poisoning
+# advisory with no fixed release: 4.3.1 is the latest on npm and the advisory lists no patched version. The patch skips
+# "__proto__" keys in mergeObject(); pnpm audit can't see patches, so the advisory is ignored. Drop both once a fixed
+# deepmerge is published.
+patchedDependencies:
+  deepmerge@4.3.1: patches/deepmerge@4.3.1.patch
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-gcqx-w48m-w2h4
+
+# Temporary: the Cloudflare toolchain (wrangler 4.155.0, its miniflare build and the Vite/Vitest plugins) was taken
+# on the day it was released, which pnpm's minimum release age otherwise refuses. Only these packages are exempt.
+# REMOVE after 2026-10-30, once all four are older than a day; nothing else changes when it goes.
+minimumReleaseAgeExclude:
+  - wrangler
+  - miniflare
+  - "@cloudflare/vite-plugin"
+  - "@cloudflare/vitest-plugin"
