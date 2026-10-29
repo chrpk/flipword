@@ -1,0 +1,271 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --border: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  /* Validated with the dataviz palette checker (CVD + normal-vision separation). */
+  --new: 217 91% 50%;
+  --learning: 32 95% 45%;
+  --review: 160 70% 30%;
+  /* Flag colours: the dataviz skill's validated categorical slots 1–5. Always shown with a name, never alone. */
+  --flag-1: #2a78d6;
+  --flag-2: #eb6834;
+  --flag-3: #1baf7a;
+  --flag-4: #eda100;
+  --flag-5: #e87ba4;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 7% 6.5%;
+  --card-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+  --destructive: 0 72% 58%;
+  --destructive-foreground: 0 0% 98%;
+  --new: 213 90% 58%;
+  --learning: 24 90% 48%;
+  --review: 155 65% 36%;
+  --flag-1: #3987e5;
+  --flag-2: #d95926;
+  --flag-3: #199e70;
+  --flag-4: #c98500;
+  --flag-5: #d55181;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-border: hsl(var(--border));
+  --color-ring: hsl(var(--ring));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-new: hsl(var(--new));
+  --color-learning: hsl(var(--learning));
+  --color-review: hsl(var(--review));
+}
+
+/*
+ * Motion vocabulary. Entrances use `backwards` fill so a delayed (staggered) element starts hidden, then hands
+ * its styles back once done. `card-in` moves with `translate`, not `transform`, so it can sit on the flip card
+ * whose `transform` is the 3D turn.
+ */
+@theme {
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-fade-in: fade-in 200ms ease-out backwards;
+  --animate-rise-in: rise-in 320ms var(--ease-out-soft) backwards;
+  --animate-drop-in: drop-in 260ms var(--ease-out-soft) backwards;
+  --animate-pop-in: pop-in 180ms var(--ease-out-soft) backwards;
+  --animate-pop: pop 360ms var(--ease-spring) backwards;
+  --animate-card-in: card-in 260ms var(--ease-out-soft) backwards;
+  --animate-grow-x: grow-x 700ms var(--ease-out-soft) backwards;
+  --animate-grow-y: grow-y 600ms var(--ease-out-soft) backwards;
+  --animate-celebrate: celebrate 420ms var(--ease-out-soft);
+  --animate-shake: shake 350ms ease-in-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes drop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+  }
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+  }
+  @keyframes celebrate {
+    40% {
+      transform: scale(1.15);
+    }
+  }
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes grow-y {
+    from {
+      transform: scaleY(0);
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  dialog::backdrop {
+    background: hsl(240 10% 3.9% / 0.5);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The countdown is information (time left), not decoration: keep its timing. */
+  *:not([role="timer"] > *),
+  ::backdrop {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+@layer components {
+  /* Whatever a page swaps in (a route, or its content replacing the spinner) eases in. Dialogs animate on their own. */
+  .enter-children > :not(dialog) {
+    animation: var(--animate-rise-in);
+  }
+
+  dialog[open] {
+    animation: var(--animate-pop-in);
+  }
+
+  dialog[open]::backdrop {
+    animation: var(--animate-fade-in);
+  }
+
+  .toast-out {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transition:
+      opacity 200ms ease-in,
+      transform 200ms ease-in;
+  }
+
+  .flip-scene {
+    perspective: 1600px;
+  }
+
+  .flip-inner {
+    display: grid;
+    transform-style: preserve-3d;
+    transition: transform 450ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    will-change: transform;
+  }
+
+  .flip-inner[data-flipped="true"] {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip-face-back {
+    transform: rotateY(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flip-inner {
+      transition: none;
+    }
+  }
+}

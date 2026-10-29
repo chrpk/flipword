@@ -1,0 +1,4 @@
+# The landing page and the legal pages are the public part; the rest of the app needs an account and sends
+# crawlers to the login page. Scripts and styles stay crawlable so the landing page (rendered client-side) can be read.
+User-agent: *
+Disallow: /api/

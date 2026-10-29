@@ -1,0 +1,106 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "flipword",
+	"main": "worker/index.ts",
+	"compatibility_date": "2026-10-23",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application",
+		// The pages people share as links also go through the Worker, which adds Open Graph tags with absolute URLs
+		// (worker/pages.ts); everything else is served straight from the static assets.
+		"run_worker_first": ["/api/*", "/", "/privacy", "/terms", "/shared/*"]
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "flipword",
+			// Replace with the id printed by `wrangler d1 create flipword` before the first deploy.
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			// Card photos. Create with `wrangler r2 bucket create flipword-images` before the first deploy.
+			"binding": "IMAGES",
+			"bucket_name": "flipword-images"
+		}
+	],
+	"ratelimits": [
+		{
+			// Per signed-in user, across the whole API (MCP tool calls count once per inner API call).
+			// Approximate and per Cloudflare location: a guard against runaway scripts and abuse, not a quota.
+			"name": "API_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": { "limit": 600, "period": 60 }
+		}
+	],
+	"vars": {
+		"DEV_LOGIN": "false",
+		// Shown on the privacy policy and terms pages as the service operator and contact point.
+		// Set both before going public: GDPR requires the controller's identity and contact details,
+		// and the DSA requires a point of contact for users and authorities.
+		"OPERATOR_NAME": "",
+		"CONTACT_EMAIL": ""
+	},
+	"env": {
+		// Separate Worker (flipword-dev) with its own database and bucket: `pnpm run deploy:dev`.
+		// Bindings and vars aren't inherited from the top level, so they're all repeated here.
+		"dev": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "flipword-dev",
+					"database_id": "e0b5208b-a260-40be-b1a6-44b90bfe788d",
+					"migrations_dir": "migrations"
+				}
+			],
+			"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flipword-dev-images" }],
+			"ratelimits": [
+				{
+					"name": "API_RATE_LIMITER",
+					"namespace_id": "1002",
+					"simple": { "limit": 600, "period": 60 }
+				}
+			],
+			"vars": {
+				// Email-only sign-in for testing; anyone with the URL can sign in as any address.
+				"DEV_LOGIN": "true",
+				"OPERATOR_NAME": "",
+				"CONTACT_EMAIL": ""
+			}
+		}
+	}
+	/**
+	 * Smart Placement
+	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+	 */
+	// "placement": {  "mode": "smart" }
+	/**
+	 * Bindings
+	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+	 * databases, object storage, AI inference, real-time communication and more.
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+	 */
+	/**
+	 * Environment Variables
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+	 * Note: Use secrets to store sensitive data.
+	 * https://developers.cloudflare.com/workers/configuration/secrets/
+	 */
+	// "vars": {  "MY_VARIABLE": "production_value" }
+	/**
+	 * Service Bindings (communicate between multiple Workers)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 */
+	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+}

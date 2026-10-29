@@ -1,0 +1,1 @@
+ALTER TABLE `card` ADD `learned_at` integer;

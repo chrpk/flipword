@@ -1,0 +1,769 @@
+{
+  "app": {
+    "name": "flipword"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "done": "Done",
+    "loading": "Loading…",
+    "optional": "Optional",
+    "reset": "Reset",
+    "retry": "Try again",
+    "save": "Save",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "errors": {
+    "loadFailed": "Something went wrong while loading.",
+    "checkConnection": "Check your connection and try again.",
+    "saveFailed": "Couldn't save. Please try again.",
+    "deleteFailed": "Couldn't delete. Please try again."
+  },
+  "nav": {
+    "main": "Main",
+    "decks": "Decks",
+    "stats": "Stats",
+    "achievements": "Achievements",
+    "settings": "Settings",
+    "skipToContent": "Skip to content",
+    "discover": "Discover"
+  },
+  "login": {
+    "tagline": "Learn words that stick, a few minutes a day.",
+    "title": "Sign in to continue",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "failed": "Sign-in didn't work. Please try again.",
+    "noProviders": "Sign-in isn't configured yet.",
+    "devOnly": "Development only",
+    "email": "Email",
+    "devSignIn": "Sign in with email",
+    "terms": "By continuing you agree to the <terms>Terms of service</terms> and confirm you've read the <privacy>Privacy policy</privacy>."
+  },
+  "welcome": {
+    "title": "Welcome, {{name}}",
+    "subtitle": "Tell us which language you're learning. You can change this any time in settings.",
+    "continue": "Continue"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or was removed.",
+    "back": "Back to decks"
+  },
+  "counts": {
+    "new": "New",
+    "learning": "Learning",
+    "review": "Review"
+  },
+  "interval": {
+    "minute_one": "{{count}}m",
+    "minute_other": "{{count}}m",
+    "hour_one": "{{count}}h",
+    "hour_other": "{{count}}h",
+    "day_one": "{{count}}d",
+    "day_other": "{{count}}d",
+    "month_one": "{{count}}mo",
+    "month_other": "{{count}}mo",
+    "year_one": "{{count}}y",
+    "year_other": "{{count}}y"
+  },
+  "duration": {
+    "seconds_one": "{{count}} sec",
+    "seconds_other": "{{count}} sec",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "hours_one": "{{count}} h {{minutes}} min",
+    "hours_other": "{{count}} h {{minutes}} min"
+  },
+  "decks": {
+    "greeting": "Hi, {{name}}",
+    "subtitleEmpty": "Create a deck to start learning.",
+    "subtitleDue_one": "You have {{formatted}} card to study today.",
+    "subtitleDue_other": "You have {{formatted}} cards to study today.",
+    "subtitleDone": "You're all caught up for today.",
+    "import": "Import",
+    "newDeck": "New deck",
+    "emptyTitle": "No decks yet",
+    "emptyDescription": "A deck is a collection of words. Create one and add cards, or import a list you already have.",
+    "createFirst": "Create a deck",
+    "importAnkiCsv": "Import from Anki or CSV",
+    "studyAllTitle": "Study everything that's due",
+    "studyAllDescription": "Review cards from all of your decks in one session.",
+    "studyAll": "Study all",
+    "cardCount_one": "{{formatted}} card",
+    "cardCount_other": "{{formatted}} cards",
+    "empty": "No cards yet",
+    "nextDue": "Next review {{when}}",
+    "doneToday": "Done for today",
+    "study": "Study",
+    "studyDeck": "Study {{name}}",
+    "learnedCount": "{{formatted}} learned",
+    "streak_one": "{{formatted}}-day streak",
+    "streak_other": "{{formatted}}-day streak",
+    "keepStreak": "study today to keep it",
+    "public": "Public",
+    "discover": "Discover decks"
+  },
+  "deck": {
+    "newTitle": "New deck",
+    "editTitle": "Edit deck",
+    "name": "Name",
+    "namePlaceholder": "e.g. Spanish – everyday words",
+    "description": "Description",
+    "create": "Create deck",
+    "created": "Deck created",
+    "saved": "Deck saved",
+    "deleted": "Deck deleted",
+    "addCard": "Add card",
+    "actions": "Deck actions",
+    "edit": "Edit deck",
+    "import": "Import cards",
+    "export": "Export as CSV",
+    "delete": "Delete deck",
+    "deleteTitle": "Delete this deck?",
+    "deleteDescription_one": "“{{name}}” and its {{count}} card will be deleted permanently, including study history.",
+    "deleteDescription_other": "“{{name}}” and its {{count}} cards will be deleted permanently, including study history.",
+    "studyNow": "Study now",
+    "noCardsYet": "No cards yet",
+    "emptyTitle": "Add your first cards",
+    "emptyDescription": "Put the word you're learning on the front and its meaning on the back.",
+    "cards": "Cards",
+    "searchPlaceholder": "Search cards",
+    "filter": "Filter cards",
+    "filters": {
+      "all": "All",
+      "due": "Due",
+      "new": "New",
+      "learning": "Learning",
+      "review": "Review",
+      "suspended": "Suspended",
+      "learned": "Learned"
+    },
+    "noMatches": "No cards match.",
+    "showing": "Showing {{shown}} of {{total}}",
+    "loadMore": "Load more",
+    "reverseCards": "Also study in reverse",
+    "reverseCardsHint": "Each word gets a second card that shows the meaning and asks for the word.",
+    "reverseCardsOffWarning": "Turning this off deletes the reverse cards and their progress.",
+    "games": "Games",
+    "learnedProgress": "Words learned",
+    "learnedOf_one": "{{learned}} of {{formatted}} word learned",
+    "learnedOf_other": "{{learned}} of {{formatted}} words learned",
+    "visibility": "Who can see this deck",
+    "private": "Private",
+    "privateHint": "Only you can see it.",
+    "public": "Public",
+    "publicHint": "Anyone signed in can find it in Discover, open it from a link and copy it. Photos, flags and your progress stay private.",
+    "share": "Share",
+    "shareTitle": "Share “{{name}}”",
+    "sharePrivate": "This deck is private, so only you can see it. Make it public to share a link and let others find it in Discover.",
+    "sharePublic": "Anyone signed in to flipword can open this link, see the words and add a copy to their own decks.",
+    "shareLink": "Link to this deck",
+    "copyLink": "Copy link",
+    "makePublic": "Make public",
+    "makePrivate": "Make private",
+    "nowPublic": "Deck is now public",
+    "nowPrivate": "Deck is now private",
+    "viewPublic": "View as others see it"
+  },
+  "card": {
+    "addTitle": "Add card",
+    "editTitle": "Edit card",
+    "front": "Front",
+    "frontHint": "The word or phrase in {{language}}",
+    "back": "Back",
+    "backHint": "Its meaning in {{language}}",
+    "example": "Example sentence",
+    "deck": "Deck",
+    "add": "Add card",
+    "added": "Card added",
+    "addShortcut": "to add",
+    "saved": "Card saved",
+    "deleted": "Card deleted",
+    "reset": "Reset progress",
+    "resetDone": "Progress reset — the card is new again",
+    "deleteTitle": "Delete this card?",
+    "deleteDescription": "“{{front}}” will be deleted permanently.",
+    "dueNow": "Due",
+    "suspend": "Suspend",
+    "unsuspend": "Unsuspend",
+    "suspendedBadge": "Suspended",
+    "suspendedToast": "Card suspended — it won't appear in study sessions",
+    "unsuspendedToast": "Card unsuspended",
+    "answerTally": "Answered right {{correct}} times, wrong {{wrong}} times",
+    "progress": {
+      "title": "Progress",
+      "none": "Not answered yet — study it or play a game to start tracking.",
+      "accuracy": "{{value}} right",
+      "study": "Study sessions",
+      "games": "Games",
+      "source": "Where",
+      "right": "Right",
+      "wrong": "Wrong",
+      "recent": "Latest answers (newest on the right)"
+    },
+    "learnedBadge": "Learned",
+    "markLearned": "Mark as learned",
+    "markNotLearned": "Mark as not learned",
+    "learnedToggle": "Learned: {{front}}",
+    "learnedToast": "“{{front}}” marked as learned — it won't come up in daily study",
+    "unlearnedToast": "“{{front}}” is back in daily study",
+    "photo": {
+      "label": "Photo",
+      "add": "Add a photo — choose, drop or paste an image",
+      "change": "Change",
+      "remove": "Remove",
+      "processing": "Preparing photo…",
+      "unsupported": "That file isn't an image we can use. Try JPEG, PNG, WebP or GIF.",
+      "unreadable": "Couldn't read that image.",
+      "storageFull": "Your photo storage is full, so the photo wasn't saved. Remove photos from other words to make room."
+    }
+  },
+  "study": {
+    "exit": "End session",
+    "allDecks": "All decks",
+    "undo": "Undo",
+    "progress": "Session progress",
+    "listen": "Listen",
+    "edit": "Edit",
+    "showAnswer": "Show answer",
+    "space": "Space",
+    "hintReveal": "to flip",
+    "hintGrade": "to answer",
+    "grades": {
+      "again": "Again",
+      "hard": "Hard",
+      "good": "Good",
+      "easy": "Easy"
+    },
+    "saveFailed": "Couldn't save your answer. The card will come back later.",
+    "undoFailed": "Couldn't undo.",
+    "caughtUpTitle": "All caught up",
+    "caughtUpDescription": "There's nothing to study right now. Come back later or add more cards.",
+    "backToDeck": "Back to deck",
+    "backToDecks": "Back to decks",
+    "completeTitle": "Session complete",
+    "completeDescription": "Nice work. Your next reviews are scheduled.",
+    "summary": {
+      "studied": "Cards",
+      "accuracy": "Correct",
+      "time": "Time"
+    },
+    "checkAgain": "Check for more",
+    "done": "Done",
+    "leech": "“{{front}}” keeps slipping, so it was suspended. Try adding an example sentence, then unsuspend it from the deck.",
+    "reverseBadge": "Meaning → word",
+    "typeAnswer": "Type the answer",
+    "typePlaceholder": "Type the answer…",
+    "check": "Check",
+    "hintCheck": "to check",
+    "typedCorrect": "Correct",
+    "youTyped": "Your answer (green = right, red = wrong, dotted = missing)",
+    "markLearned": "I know this",
+    "learnedToast": "“{{front}}” marked as learned. Unmark it from the deck any time.",
+    "learnedFailed": "Couldn't mark the word as learned."
+  },
+  "import": {
+    "title": "Import cards",
+    "subtitle": "Bring in a word list from a spreadsheet, Quizlet or Anki.",
+    "reading": "Reading file…",
+    "dropTitle": "Drop a file here or click to choose",
+    "dropDescription": "CSV, TSV, TXT or Anki package (.apkg)",
+    "csvTitle": "CSV, TSV or text",
+    "csvHelp": "One card per row. Comma, semicolon and tab separated files work, including Quizlet exports.",
+    "ankiTitle": "Anki package",
+    "ankiHelp": "Export a deck from Anki as .apkg. Text fields are imported; media and review history are not.",
+    "rowsFound_one": "{{formatted}} row found",
+    "rowsFound_other": "{{formatted}} rows found",
+    "chooseAnother": "Choose another file",
+    "mapTitle": "Match the columns",
+    "noteType": "Note type",
+    "noteTypeOption_one": "{{name}} ({{formatted}} note)",
+    "noteTypeOption_other": "{{name}} ({{formatted}} notes)",
+    "hasHeader": "First row contains column names",
+    "column": "Column {{n}}",
+    "none": "None",
+    "roles": {
+      "front": "Front",
+      "back": "Back",
+      "example": "Example"
+    },
+    "previewTitle": "Preview",
+    "noValidRows": "No rows have both a front and a back.",
+    "rowsIgnored_one": "{{formatted}} row without a front or back will be skipped.",
+    "rowsIgnored_other": "{{formatted}} rows without a front or back will be skipped.",
+    "destinationTitle": "Destination",
+    "deck": "Import into",
+    "newDeck": "A new deck",
+    "untitled": "Imported deck",
+    "skipDuplicates": "Skip duplicates",
+    "skipDuplicatesHint": "Don't add a card if the deck already has one with the same front.",
+    "ready_one": "{{formatted}} card ready to import.",
+    "ready_other": "{{formatted}} cards ready to import.",
+    "importButton_one": "Import {{formatted}} card",
+    "importButton_other": "Import {{formatted}} cards",
+    "importing": "Importing",
+    "progress": "{{done}} of {{total}}",
+    "doneTitle": "Import complete",
+    "doneCreated_one": "{{formatted}} card added.",
+    "doneCreated_other": "{{formatted}} cards added.",
+    "doneSkipped_one": "{{formatted}} duplicate skipped.",
+    "doneSkipped_other": "{{formatted}} duplicates skipped.",
+    "importMore": "Import another file",
+    "openDeck": "Open deck",
+    "errors": {
+      "invalid": "This file couldn't be read. Use a CSV/TSV text file or an Anki .apkg export.",
+      "empty": "The file doesn't contain any cards.",
+      "failed": "The import stopped because of an error. Cards imported so far were kept."
+    }
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Your progress over the last month.",
+    "emptyTitle": "No statistics yet",
+    "emptyDescription": "Study a few cards and your progress will show up here.",
+    "goToDecks": "Go to decks",
+    "today": "Reviewed today",
+    "reviewsUnit": "cards",
+    "timeToday": "Time today",
+    "streak": "Streak",
+    "days_one": "{{formatted}} day",
+    "days_other": "{{formatted}} days",
+    "retention": "Retention",
+    "retentionHint": "Mature cards remembered, 30 days",
+    "reviewsTitle": "Reviews",
+    "reviewsSubtitle": "Cards answered per day, last 30 days",
+    "reviewsDetail_one": "{{formatted}} review · {{again}} again",
+    "reviewsDetail_other": "{{formatted}} reviews · {{again}} again",
+    "noReviews": "No reviews",
+    "forecastTitle": "Upcoming",
+    "forecastSubtitle": "Reviews due per day, next 14 days",
+    "todayLabel": "Today",
+    "dueDetail_one": "{{formatted}} card due",
+    "dueDetail_other": "{{formatted}} cards due",
+    "cardsTitle": "Cards",
+    "mature": "Review",
+    "totalCards_one": "{{formatted}} card",
+    "totalCards_other": "{{formatted}} cards",
+    "totalReviews_one": "{{formatted}} review all time",
+    "totalReviews_other": "{{formatted}} reviews all time",
+    "learnedWords_one": "{{formatted}} word learned",
+    "learnedWords_other": "{{formatted}} words learned"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "{{unlocked}} of {{total}} unlocked. Once you reach a milestone, it stays yours.",
+    "next": "Next: {{name}}",
+    "allUnlocked": "Every milestone reached",
+    "currentStreak": "Current: {{value}}",
+    "unlockedOn": "unlocked {{date}}",
+    "locked": "not reached yet",
+    "unlocked": "Achievement unlocked: {{name}}",
+    "unlockedMany_one": "{{count}} achievement unlocked",
+    "unlockedMany_other": "{{count}} achievements unlocked",
+    "streak": {
+      "title": "Study streak",
+      "description": "Best run of days in a row with at least one review",
+      "name_one": "{{formatted}}-day streak",
+      "name_other": "{{formatted}}-day streak"
+    },
+    "words": {
+      "title": "Words learned",
+      "description": "Words you marked as learned or that graduated to review",
+      "name_one": "{{formatted}} word learned",
+      "name_other": "{{formatted}} words learned"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "description": "Cards answered in study sessions",
+      "name_one": "{{formatted}} review",
+      "name_other": "{{formatted}} reviews"
+    },
+    "games": {
+      "title": "Games",
+      "description": "Games played to the end",
+      "name_one": "First game played",
+      "name_other": "{{formatted}} games played"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage how you study and how flipword looks.",
+    "saved": "Settings saved",
+    "saveChanges": "Save changes",
+    "languagesTitle": "Languages",
+    "languagesDescription": "Used for pronunciation and card hints.",
+    "targetLang": "I'm learning",
+    "nativeLang": "I speak",
+    "studyTitle": "Daily study",
+    "studyDescription": "Limits apply across all decks and reset at midnight.",
+    "newPerDay": "New cards per day",
+    "newPerDayHint": "How many unseen cards to introduce each day.",
+    "maxReviews": "Maximum reviews per day",
+    "maxReviewsHint": "Caps reviews so a backlog stays manageable.",
+    "retention": "Target retention",
+    "retentionHint": "Higher values schedule reviews sooner so you forget less, at the cost of more reviews. 90% suits most learners.",
+    "appearanceTitle": "Appearance",
+    "appearanceDescription": "Saved on this device.",
+    "theme": "Theme",
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "uiLanguage": "Interface language",
+    "uiLanguageHint": "More languages are coming soon.",
+    "accountTitle": "Account",
+    "signOut": "Sign out",
+    "deleteTitle": "Delete account",
+    "deleteDescription": "Permanently delete your account, decks, cards and study history.",
+    "deleteButton": "Delete account",
+    "deleteConfirmTitle": "Delete your account?",
+    "deleteConfirmDescription": "All of your decks, cards and study history will be deleted. This can't be undone.",
+    "deleteFailed": "Couldn't delete your account. Sign out, sign in again and retry.",
+    "exportTitle": "Download my data",
+    "exportDescription": "Everything flipword stores about you — profile, settings, decks, words, study and game history — as one JSON file.",
+    "exportButton": "Download my data"
+  },
+  "footer": {
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "report": {
+    "button": "Report",
+    "title": "Report “{{name}}”",
+    "description": "Tell us if this deck breaks the rules or the law. Reports are reviewed by a person; the author isn't told who reported it.",
+    "reason": "Reason",
+    "choose": "Choose a reason",
+    "reasons": {
+      "spam": "Spam or advertising",
+      "offensive": "Hateful, harassing or sexual content",
+      "illegal": "Illegal content",
+      "copyright": "Copies someone else's work without permission",
+      "other": "Something else"
+    },
+    "details": "Details",
+    "detailsHint": "What's wrong, and where in the deck? For illegal content, say which law you think it breaks.",
+    "send": "Send report",
+    "sent": "Thanks — your report was sent."
+  },
+  "legal": {
+    "updated": "Last updated {{date}}",
+    "operator": "Operated by {{name}}",
+    "contact": "Contact",
+    "notConfigured": "The operator's contact details haven't been set up for this site yet.",
+    "toc": "On this page",
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This policy explains what flipword stores about you, why, and what you can do about it. We collect only what the app needs to work. We don't sell your data, show ads, or use analytics or tracking tools.",
+      "who": {
+        "title": "Who is responsible",
+        "body": "The operator named above is the controller of your personal data under the EU General Data Protection Regulation (GDPR). Write to the contact address above with any question about your data or this policy."
+      },
+      "data": {
+        "title": "What we store",
+        "body": "Account: when you sign in with Google or Facebook we receive and store your name, email address, a link to your profile picture and your account ID with that provider. We never see your password and never post anything on your behalf.\n\nYour content: decks, words, example sentences, photos you add, flags, settings (such as your languages, daily limits and time zone), study and game history, achievements, and the names of access tokens you create for AI assistants (only a hash of each token is stored).\n\nTechnical data: for each sign-in session we store the IP address and browser it was started from, to keep your account secure. Our hosting provider also keeps short-lived request logs, including IP addresses, to operate and protect the service.\n\nReports: if you report a public deck, we store the report together with your account so we can follow up."
+      },
+      "purposes": {
+        "title": "Why we use it",
+        "body": "We use your data to provide flipword to you: to sign you in, store and schedule your cards, and show your progress (GDPR Art. 6(1)(b), performance of our agreement with you). Session and log data are used to keep the service secure and prevent abuse, which is our legitimate interest (Art. 6(1)(f)). We don't use your data for advertising or profiling, and we don't make automated decisions about you."
+      },
+      "sharing": {
+        "title": "Who else processes it",
+        "body": "Cloudflare hosts flipword for us: its servers, database, photo storage and logs. Cloudflare processes the data on our behalf under its data processing agreement, which also covers transfers outside the EU, for example to the United States.\n\nGoogle or Meta (Facebook) handle sign-in when you choose them. Their own privacy policies apply to what happens on their side.\n\nWe don't sell your data or share it with anyone else, unless the law requires us to."
+      },
+      "publicDecks": {
+        "title": "Public decks",
+        "body": "Decks are private unless you make them public. Every signed-in user can see a public deck's name, description and words (front, back and example) and your first name, and can copy the deck. Photos, flags and your progress are never shown. Making a deck private again hides it immediately, but copies other people have already made stay theirs."
+      },
+      "cookies": {
+        "title": "Cookies and local storage",
+        "body": "flipword sets only the cookies it needs to keep you signed in. It also saves a few preferences, such as your theme and interface language, in your browser's local storage, and caches the app so it loads quickly and can be installed. None of this is used for tracking, which is why there's no cookie banner."
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "body": "We keep your data for as long as you have an account. Sign-in sessions end after 7 days without use. When you delete your account, your profile, decks, words, photos, history, tokens and reports are deleted immediately; database backups that still contain them are overwritten within 30 days. Hosting logs are kept for a few days."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "You can download your data at any time (Settings → Download my data), correct it by editing it in the app, and delete it (Settings → Delete account). You can also ask us for a copy of your data, to restrict or stop processing, or anything else about your data, at the contact address above. If you live in the EU/EEA or the UK, you can also complain to your local data protection authority."
+      },
+      "deletion": {
+        "title": "Deleting your data",
+        "body": "Go to Settings → Delete account. This deletes your account and everything in it straight away, including photos, and can't be undone.\n\nRemoving flipword from your Google or Facebook settings only stops future sign-ins; it doesn't delete your flipword data, so delete your account here first. If you can no longer sign in, email the contact address above from the address on your account and we'll delete it for you."
+      },
+      "security": {
+        "title": "Security",
+        "body": "All connections are encrypted (HTTPS). Photos are only visible to you. Access tokens are shown once, stored only as a hash and can be revoked in Settings at any time."
+      },
+      "children": {
+        "title": "Children",
+        "body": "flipword isn't intended for anyone under 16. If you believe a child has created an account, contact us and we'll delete it."
+      },
+      "changes": {
+        "title": "Changes to this policy",
+        "body": "When this policy changes we'll update the date at the top. For significant changes we'll give notice before they take effect."
+      }
+    },
+    "terms": {
+      "title": "Terms of service",
+      "intro": "These terms apply when you use flipword. By signing in you agree to them. Please read them together with the privacy policy.",
+      "account": {
+        "title": "Your account",
+        "body": "You sign in with a Google or Facebook account, and you must be at least 16. You're responsible for what happens under your account, including through access tokens you create for AI assistants, so keep them safe."
+      },
+      "content": {
+        "title": "Your content",
+        "body": "Your decks, words and photos remain yours. You allow us to store, process and display them as needed to run flipword for you. Only upload what you have the right to use."
+      },
+      "publicDecks": {
+        "title": "Public decks",
+        "body": "When you make a deck public, you allow other flipword users to view it and make their own copies for personal learning, and you allow us to show it in Discover. You can make it private again at any time; copies already made aren't affected."
+      },
+      "rules": {
+        "title": "Rules",
+        "body": "Don't use flipword to upload or share content that is illegal, infringes someone else's rights (such as copyrighted material you may not share), harasses or threatens people, is sexually explicit, or is spam. Don't try to break, overload or get around the limits or security of the service, or to access other people's data."
+      },
+      "reports": {
+        "title": "Reporting content",
+        "body": "Every public deck has a Report button for content that breaks these rules or the law; you can also write to the contact address above. We review reports and may make a deck private, remove content or suspend accounts that break these terms. When we do, we tell the affected user why, unless the law prevents it."
+      },
+      "availability": {
+        "title": "Availability",
+        "body": "flipword is free and provided as it is. We work to keep it running and your data safe, but we can't promise it will always be available or free of errors. Keep your own copies of anything important — you can export decks as CSV and download all your data at any time."
+      },
+      "liability": {
+        "title": "Liability",
+        "body": "As far as the law allows, we aren't liable for indirect losses, or for losses caused by events outside our reasonable control. Nothing in these terms limits liability that can't legally be limited, or your rights as a consumer."
+      },
+      "ending": {
+        "title": "Ending your use",
+        "body": "You can stop using flipword and delete your account at any time in Settings. We may suspend or close accounts that seriously or repeatedly break these terms."
+      },
+      "changes": {
+        "title": "Changes to these terms",
+        "body": "We may update these terms. For significant changes we'll give notice before they take effect; if you keep using flipword after that, the new terms apply."
+      }
+    }
+  },
+  "games": {
+    "title": "Games",
+    "subtitle": "Practise your words in different ways. Games don't change your review schedule, but every answer counts towards each word's progress.",
+    "kind": {
+      "recognition": "Recognition",
+      "recall": "Recall"
+    },
+    "play": "Play",
+    "playGame": "Play {{name}}",
+    "notPlayed": "Not played yet",
+    "bestLabel": "Best: {{value}}",
+    "needCards_one": "Needs at least {{count}} card",
+    "needCards_other": "Needs at least {{count}} cards",
+    "notEnoughTitle": "Not enough cards for this game",
+    "backToDeck": "Back to deck",
+    "exit": "Leave game",
+    "start": "Start",
+    "toStart": "to start",
+    "seconds": "{{value}} s",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "progressLabel": "Game progress",
+    "timeLeft": "Time left",
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "correctAnswer": "Answer:",
+    "dontKnow": "I don't know",
+    "check": "Check",
+    "next": "Next",
+    "finish": "See results",
+    "saveFailed": "Couldn't save this game's results.",
+    "newBest": "New best!",
+    "yourScore": "Your score",
+    "yourTime": "Your time",
+    "correctCount": "Right",
+    "wrongCount": "Wrong",
+    "time": "Time",
+    "toReview": "Words to look at again",
+    "allGames": "All games",
+    "playAgain": "Play again",
+    "match": {
+      "name": "Match",
+      "description": "Pair each word with its meaning against the clock.",
+      "howTo": "Tap a word, then its meaning. Clear the board as fast as you can — every wrong pair adds a second.",
+      "progress": "{{matched}} of {{total}} pairs",
+      "penalty": "+{{value}} s penalty"
+    },
+    "quiz": {
+      "name": "Quiz",
+      "description": "Multiple choice in both directions.",
+      "howTo": "Pick the right meaning for a word, or the right word for a meaning. Use the number keys 1–4.",
+      "pickMeaning": "What does this mean?",
+      "pickWord": "Which word means this?"
+    },
+    "truefalse": {
+      "name": "True or false",
+      "description": "A 60-second speed round. Streaks multiply your points.",
+      "howTo": "Does the meaning belong to the word? Answer as many as you can in 60 seconds. Use ← for false and → for true.",
+      "means": "means",
+      "true": "True",
+      "false": "False",
+      "secondsLeft_one": "{{count}} second left",
+      "secondsLeft_other": "{{count}} seconds left"
+    },
+    "spell": {
+      "name": "Spell it",
+      "description": "See the meaning, then type the word.",
+      "howTo": "Type the word for each meaning. Accents count. Tap Listen if you'd like to hear it first.",
+      "prompt": "Type the word for",
+      "listen": "Listen",
+      "placeholder": "Type the word…"
+    },
+    "scramble": {
+      "name": "Unscramble",
+      "description": "Rebuild the word from its shuffled letters.",
+      "howTo": "Tap the letters (or type them) in the right order. Backspace removes a letter. Each hint costs {{cost}} points.",
+      "prompt": "Unscramble the word for",
+      "answer": "Your answer",
+      "notQuite": "Not quite — remove letters and try again.",
+      "undoLetter": "Remove letter",
+      "hint": "Hint (−{{cost}})",
+      "revealed": "Here's the word"
+    }
+  },
+  "flags": {
+    "label": "Flag",
+    "none": "No flag",
+    "filter": "Flags",
+    "nameFor": "Name for the {{color}} flag",
+    "settingsTitle": "Flags",
+    "settingsDescription": "Name your flags to give them meaning, e.g. “Tricky” or “Verbs”. Empty names use the colour.",
+    "default": {
+      "1": "Blue",
+      "2": "Orange",
+      "3": "Teal",
+      "4": "Yellow",
+      "5": "Pink"
+    }
+  },
+  "mcp": {
+    "title": "Connect an AI assistant",
+    "description": "Let Claude or another MCP-capable assistant create decks and add, edit or delete words for you. Each assistant gets its own token, which you can revoke at any time.",
+    "serverUrl": "MCP server URL",
+    "serverUrlHint": "Streamable HTTP endpoint. Requires a token from below.",
+    "copyUrl": "Copy server URL",
+    "copyToken": "Copy token",
+    "copySetup": "Copy setup",
+    "newToken": "New token",
+    "tokenNamePlaceholder": "e.g. Claude Desktop on my laptop",
+    "create": "Create token",
+    "createdTitle": "Token “{{name}}” created",
+    "createdHint": "Copy it now — it won't be shown again. Anyone with this token can read and change your decks.",
+    "client": "Assistant",
+    "instructions": {
+      "claude-code": "Run this in your terminal:",
+      "claude-desktop": "Add this to claude_desktop_config.json (Settings → Developer → Edit Config), then restart Claude Desktop. Requires Node.js.",
+      "cursor": "Add this to ~/.cursor/mcp.json (or the project's .cursor/mcp.json)."
+    },
+    "tokens": "Your tokens",
+    "noTokens": "No tokens yet.",
+    "createdOn": "created {{date}}",
+    "lastUsed": "last used {{when}}",
+    "neverUsed": "never used",
+    "revoke": "Revoke",
+    "revokeNamed": "Revoke {{name}}",
+    "revoked": "Token revoked",
+    "revokeTitle": "Revoke this token?",
+    "revokeDescription": "Assistants using it will lose access immediately."
+  },
+  "discover": {
+    "title": "Discover decks",
+    "subtitle": "Find decks other learners have shared and add a copy to your own.",
+    "search": "Search public decks",
+    "emptyTitle": "No public decks yet",
+    "emptyDescription": "When people make a deck public it shows up here. Share one of yours from its page.",
+    "noMatches": "No public decks match “{{q}}”.",
+    "by": "by {{name}}",
+    "yours": "Yours",
+    "reverse": "Studies both ways",
+    "count_one": "{{formatted}} public deck",
+    "count_other": "{{formatted}} public decks"
+  },
+  "shared": {
+    "back": "Discover",
+    "add": "Add to my decks",
+    "added": "“{{name}}” added to your decks",
+    "addHint": "You get your own private copy with every word new. Changes the author makes later don't reach your copy.",
+    "own": "This is your deck.",
+    "ownPrivate": "This is your deck. It's private, so only you can open this page.",
+    "openMine": "Open my deck",
+    "words": "Words",
+    "search": "Search words",
+    "noMatches": "No words match.",
+    "empty": "This deck has no words yet.",
+    "notFoundTitle": "Deck not available",
+    "notFoundDescription": "This deck is private or no longer exists."
+  },
+  "landing": {
+    "eyebrow": "Spaced-repetition flashcards",
+    "title": "Vocabulary that stays learned.",
+    "subtitle": "flipword shows each word just before you'd forget it. Study a few minutes a day, and the gaps between reviews grow from minutes to months.",
+    "getStarted": "Get started",
+    "signIn": "Sign in",
+    "howItWorks": "See how it works",
+    "demo": {
+      "label": "Try a flashcard",
+      "hint": "Try it: tap the card, then rate how well you knew it.",
+      "footnote": "Each button shows when the word comes back. These are real numbers from the scheduler.",
+      "result": "“{{word}}” comes back in {{interval}}."
+    },
+    "how": {
+      "title": "Reviews spread out as you remember",
+      "body": "Answer Good every time and a new word comes back after 10 minutes, then in a couple of days, then weeks and months later. Press Again and it starts over with short steps. The scheduler is FSRS, the open-source algorithm also built into Anki, aiming for {{retention}} recall by default.",
+      "chartTitle": "One word, answered Good every time",
+      "review": "Review {{n}}",
+      "gap": "Next review after {{interval}}",
+      "summary_one": "{{count}} review covers {{total}}.",
+      "summary_other": "{{count}} reviews cover {{total}}."
+    },
+    "features": {
+      "title": "What else is in it",
+      "import": {
+        "title": "Import your decks",
+        "body": "Anki packages (.apkg), CSV and TSV files, Quizlet exports. Files are read in your browser."
+      },
+      "typing": {
+        "title": "Type the answer",
+        "body": "Type the word instead of flipping. Right, wrong and missing letters are marked."
+      },
+      "media": {
+        "title": "Photos and audio",
+        "body": "Add a photo to any word and hear it spoken in the language you're learning."
+      },
+      "achievements": {
+        "title": "Streaks and achievements",
+        "body": "Milestones for days in a row, words learned, reviews and games played."
+      },
+      "assistant": {
+        "title": "Works with your AI assistant",
+        "body": "Connect Claude, Cursor or another MCP client and ask it to add 30 words about cooking."
+      },
+      "install": {
+        "title": "Install it like an app",
+        "body": "Add it to your home screen or dock. Light and dark themes included."
+      }
+    },
+    "games": {
+      "title_one": "{{count}} game for a change of pace",
+      "title_other": "{{count}} games for a change of pace",
+      "body": "Games mix recognition and recall. They never touch your review schedule, but every answer counts toward a word's progress."
+    },
+    "cta": {
+      "title": "Your first deck takes a minute",
+      "body": "Sign in, pick the language you're learning, and add words by hand or import a deck you already have."
+    }
+  }
+}
