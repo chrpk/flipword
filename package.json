@@ -9,13 +9,11 @@
 		"lint": "oxlint",
 		"preview": "pnpm run build && vite preview",
 		"deploy": "pnpm run build && wrangler d1 migrations apply flipword --remote && wrangler deploy",
-		"deploy:dev": "CLOUDFLARE_ENV=dev pnpm run build && wrangler d1 migrations apply flipword-dev --remote --env dev && wrangler deploy",
 		"cf-typegen": "wrangler types",
 		"test": "vitest run",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "wrangler d1 migrations apply flipword --local",
 		"db:migrate:remote": "wrangler d1 migrations apply flipword --remote",
-		"db:migrate:remote:dev": "wrangler d1 migrations apply flipword-dev --remote --env dev",
 		"db:backup": "mkdir -p backups && wrangler d1 export flipword --remote --output backups/flipword-$(date +%Y%m%d-%H%M%S).sql"
 	},
 	"dependencies": {

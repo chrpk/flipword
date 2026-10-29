@@ -73,8 +73,12 @@ pnpm run deploy
 ```
 
 `DEV_LOGIN` is `"false"` in `wrangler.jsonc`, so email/password sign-in is disabled in production.
-To use a custom domain, add it under *Workers & Pages → flipword → Settings → Domains & Routes* and use it as
-`BETTER_AUTH_URL`.
+The Worker is served on the custom domain in `wrangler.jsonc` → `routes` (currently `flipword.chrpk.com`); use the
+same URL as `BETTER_AUTH_URL`.
+
+After that first setup, every push to `main` deploys automatically (`.github/workflows/deploy.yml`: lint, tests, then
+`pnpm run deploy`). It needs a repository secret `CLOUDFLARE_API_TOKEN`, created in the Cloudflare dashboard under
+*My Profile → API Tokens* from the *Edit Cloudflare Workers* template with *D1: Edit* added.
 
 ### Before going public
 
