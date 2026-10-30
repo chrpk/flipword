@@ -132,6 +132,8 @@ export interface Stats {
   totalReviews: number;
   /** Last 30 days, oldest first. `day` is YYYY-MM-DD in the client's timezone. */
   daily: { day: string; reviews: number; again: number }[];
+  /** Last 365 days, oldest first, for the activity calendar. */
+  calendar: { day: string; reviews: number }[];
   /** Next 14 days, today first. Overdue cards count towards today. */
   forecast: { day: string; due: number }[];
   states: { new: number; learning: number; review: number; relearning: number };

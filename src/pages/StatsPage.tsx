@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BarChart3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { ColumnChart, StackedBar } from "../components/charts";
+import { CalendarHeatmap, ColumnChart, StackedBar } from "../components/charts";
 import { Card, EmptyState, ErrorState, PageSpinner } from "../components/ui";
 import { buttonClass } from "../components/classes";
 import { api, queryKeys } from "../lib/api";
@@ -51,6 +51,8 @@ export default function StatsPage() {
 
   const short = (day: string) => formatDate(lang, dayDate(day), { month: "short", day: "numeric" });
   const long = (day: string) => formatDate(lang, dayDate(day), { weekday: "short", month: "short", day: "numeric" });
+  const yearReviews = s.calendar.reduce((n, d) => n + d.reviews, 0);
+  const activeDays = s.calendar.filter((d) => d.reviews > 0).length;
 
   return (
     <div>
@@ -67,6 +69,32 @@ export default function StatsPage() {
           hint={t("stats.retentionHint")}
         />
       </div>
+
+      <Card className="mt-6 p-6">
+        <h2 className="font-semibold">{t("stats.activityTitle")}</h2>
+        <p className="mt-1 mb-6 text-sm text-muted-foreground">{t("stats.activitySubtitle")}</p>
+        <CalendarHeatmap
+          title={t("stats.activityTitle")}
+          locale={lang}
+          less={t("stats.less")}
+          more={t("stats.more")}
+          summary={t("stats.activitySummary", {
+            count: yearReviews,
+            formatted: formatNumber(lang, yearReviews),
+            days: t("stats.days", { count: activeDays, formatted: formatNumber(lang, activeDays) }),
+          })}
+          days={s.calendar.map((d) => ({
+            key: d.day,
+            date: dayDate(d.day),
+            value: d.reviews,
+            label: formatDate(lang, dayDate(d.day), { weekday: "short", year: "numeric", month: "short", day: "numeric" }),
+            detail:
+              d.reviews === 0
+                ? t("stats.noReviews")
+                : t("stats.reviewCount", { count: d.reviews, formatted: formatNumber(lang, d.reviews) }),
+          }))}
+        />
+      </Card>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-6">

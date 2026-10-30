@@ -147,6 +147,10 @@ All parsing happens in the browser; the API receives plain JSON cards in chunks.
 - Today: cards reviewed, time studied.
 - Streak (consecutive days with at least one review).
 - 30-day retention (share of review-state answers that were not "Again").
+- Activity calendar, last 12 months: one square per day in week columns (week starts on the locale's first day),
+  shaded in five steps relative to the busiest day. Arrow keys move by day (up/down) and week (left/right); the
+  picked day's date and review count show under the grid, otherwise the year's total and active days. Scrolls
+  sideways on narrow screens, starting at today. The hidden table lists days with reviews.
 - Reviews per day, last 30 days.
 - Due forecast, next 14 days.
 - Card counts by state.
