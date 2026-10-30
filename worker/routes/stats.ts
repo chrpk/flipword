@@ -8,6 +8,7 @@ import { card, reviewLog } from "../db/schema";
 import { dayIndexSql } from "../queries";
 
 const HISTORY_DAYS = 30;
+const CALENDAR_DAYS = 365;
 const FORECAST_DAYS = 14;
 const STREAK_LOOKBACK_DAYS = 3650;
 
@@ -21,7 +22,7 @@ export const stats = new Hono<AppEnv>().get("/", async (c) => {
   const historyStart = now.dayStart(today - HISTORY_DAYS + 1);
   const forecastEnd = now.dayStart(today + FORECAST_DAYS);
 
-  const [daily, streakDays, totals, forecast, states, learned] = await Promise.all([
+  const [daily, reviewDays, totals, forecast, states, learned] = await Promise.all([
     db
       .select({
         day: dayOf(reviewLog.review),
@@ -32,10 +33,12 @@ export const stats = new Hono<AppEnv>().get("/", async (c) => {
       .from(reviewLog)
       .where(and(eq(reviewLog.userId, userId), gte(reviewLog.review, historyStart)))
       .groupBy(sql`1`),
+    // Reviews per day for the streak and the activity calendar; only needs the (user_id, review) index.
     db
-      .selectDistinct({ day: dayOf(reviewLog.review) })
+      .select({ day: dayOf(reviewLog.review), reviews: sql<number>`count(*)` })
       .from(reviewLog)
       .where(and(eq(reviewLog.userId, userId), gte(reviewLog.review, now.dayStart(today - STREAK_LOOKBACK_DAYS))))
+      .groupBy(sql`1`)
       .orderBy(sql`1 desc`),
     db
       .select({
@@ -71,10 +74,11 @@ export const stats = new Hono<AppEnv>().get("/", async (c) => {
   ]);
 
   const dailyByDay = new Map(daily.map((d) => [d.day, d]));
+  const reviewsByDay = new Map(reviewDays.map((d) => [d.day, d.reviews]));
   const todayRow = dailyByDay.get(today);
 
   const streak = streaks(
-    streakDays.map((d) => d.day),
+    reviewDays.map((d) => d.day),
     today,
   ).current;
 
@@ -96,6 +100,10 @@ export const stats = new Hono<AppEnv>().get("/", async (c) => {
       const day = today - HISTORY_DAYS + 1 + i;
       const row = dailyByDay.get(day);
       return { day: now.label(day), reviews: row?.reviews ?? 0, again: row?.again ?? 0 };
+    }),
+    calendar: Array.from({ length: CALENDAR_DAYS }, (_, i) => {
+      const day = today - CALENDAR_DAYS + 1 + i;
+      return { day: now.label(day), reviews: reviewsByDay.get(day) ?? 0 };
     }),
     forecast: Array.from({ length: FORECAST_DAYS }, (_, i) => ({
       day: now.label(today + i),

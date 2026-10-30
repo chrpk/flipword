@@ -1,5 +1,5 @@
-import { useId, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { numberFormat } from "../lib/format";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { formatDate, numberFormat } from "../lib/format";
 import { cx } from "./classes";
 
 export interface Column {
@@ -196,6 +196,186 @@ export function StackedBar({ segments, locale, title }: { segments: Segment[]; l
           </li>
         ))}
       </ul>
+    </figure>
+  );
+}
+
+export interface CalendarDay {
+  key: string;
+  /** Local midnight of the day. */
+  date: number;
+  value: number;
+  /** Full date (e.g. "Tue, Oct 28"). */
+  label: string;
+  detail: string;
+}
+
+/** 0 = Sunday … 6 = Saturday. Falls back to Monday where the browser has no week data. */
+function firstDayOfWeek(locale: string) {
+  try {
+    const l = new Intl.Locale(locale) as Intl.Locale & {
+      getWeekInfo?: () => { firstDay: number };
+      weekInfo?: { firstDay: number };
+    };
+    return ((l.getWeekInfo?.() ?? l.weekInfo)?.firstDay ?? 1) % 7;
+  } catch {
+    return 1;
+  }
+}
+
+const HEAT = ["bg-muted", "bg-primary/25", "bg-primary/45", "bg-primary/70", "bg-primary"];
+
+/** Activity calendar: one column per week, one square per day, shaded by value relative to the busiest day. */
+export function CalendarHeatmap({
+  days,
+  locale,
+  title,
+  summary,
+  less,
+  more,
+}: {
+  /** Consecutive days, oldest first. */
+  days: CalendarDay[];
+  locale: string;
+  title: string;
+  /** Shown under the grid while no day is picked. */
+  summary: string;
+  less: string;
+  more: string;
+}) {
+  const [active, setActive] = useState<number | null>(null);
+  const tableId = useId();
+  const scroller = useRef<HTMLDivElement>(null);
+  const firstDay = firstDayOfWeek(locale);
+  const lead = days.length ? (new Date(days[0].date).getDay() - firstDay + 7) % 7 : 0;
+  const weeks = Math.ceil((lead + days.length) / 7);
+  const max = Math.max(1, ...days.map((d) => d.value));
+  const level = (v: number) => (v === 0 ? 0 : Math.ceil((v / max) * (HEAT.length - 1)));
+
+  // Month names over the week that holds the 1st, unless too close to the right edge to fit.
+  const months = days.flatMap((d, i) =>
+    new Date(d.date).getDate() === 1 && Math.floor((lead + i) / 7) < weeks - 2
+      ? [{ col: Math.floor((lead + i) / 7), label: formatDate(locale, d.date, { month: "short" }) }]
+      : [],
+  );
+  // Label every other row, like a wall calendar's margin. Jan 7 2024 was a Sunday.
+  const weekdays = Array.from({ length: 7 }, (_, r) =>
+    r % 2 === 1 ? formatDate(locale, new Date(2024, 0, 7 + ((firstDay + r) % 7)).getTime(), { weekday: "short" }) : "",
+  );
+
+  // Start scrolled to today on narrow screens.
+  useEffect(() => {
+    const el = scroller.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [days.length]);
+
+  const pick = (e: PointerEvent<HTMLDivElement>) => {
+    const i = (e.target as HTMLElement).dataset.i;
+    if (i !== undefined) setActive(Number(i));
+  };
+
+  const step = (e: KeyboardEvent<HTMLDivElement>) => {
+    const last = days.length - 1;
+    const from = active ?? last;
+    const next = { ArrowLeft: from - 7, ArrowRight: from + 7, ArrowUp: from - 1, ArrowDown: from + 1, Home: 0, End: last }[
+      e.key
+    ];
+    if (next === undefined) return;
+    e.preventDefault();
+    const i = Math.min(last, Math.max(0, next));
+    setActive(i);
+    scroller.current?.querySelector(`[data-i="${i}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  };
+
+  const columns = { gridTemplateColumns: `repeat(${weeks}, minmax(10px, 1fr))` };
+  const current = active !== null ? days[active] : undefined;
+
+  return (
+    <figure className="m-0">
+      <div className="grid grid-cols-[auto_1fr] gap-x-2">
+        {/* Stretches to the grid's height; the margins skip the month row and the scroller's bottom padding. */}
+        <div className="mt-5 mb-1 grid grid-rows-7 gap-[3px] text-[11px] leading-none text-muted-foreground" aria-hidden>
+          {weekdays.map((w, r) => (
+            <span key={r} className="flex items-center">
+              {w}
+            </span>
+          ))}
+        </div>
+        <div ref={scroller} className="overflow-x-auto pb-1">
+          <div>
+            <div className="grid h-5 gap-[3px] text-[11px] text-muted-foreground" style={columns} aria-hidden>
+              {months.map((m) => (
+                <span key={m.col} className="whitespace-nowrap" style={{ gridColumnStart: m.col + 1 }}>
+                  {m.label}
+                </span>
+              ))}
+            </div>
+            {/* One focusable grid rather than a button per day, as in ColumnChart: arrow keys move by day (up/down)
+                and by week (left/right); hovering or tapping picks the square under the pointer. */}
+            <div
+              className="grid grid-flow-col grid-rows-7 gap-[3px] rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4"
+              style={columns}
+              role="group"
+              tabIndex={0}
+              aria-label={title}
+              aria-describedby={tableId}
+              onPointerMove={pick}
+              onPointerDown={pick}
+              onPointerLeave={(e) => e.pointerType === "mouse" && setActive(null)}
+              onFocus={() => setActive((a) => a ?? days.length - 1)}
+              onBlur={() => setActive(null)}
+              onKeyDown={step}
+            >
+              {Array.from({ length: lead }, (_, i) => (
+                <span key={`lead-${i}`} aria-hidden />
+              ))}
+              {days.map((d, i) => (
+                <span
+                  key={d.key}
+                  data-i={i}
+                  aria-hidden
+                  className={cx(
+                    "aspect-square rounded-[3px]",
+                    HEAT[level(d.value)],
+                    i === active && "outline-2 outline-offset-1 outline-foreground",
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-xs text-muted-foreground">
+        <p aria-live="polite" className="tabular-nums">
+          {current ? (
+            <>
+              <span className="font-medium text-foreground">{current.label}</span> · {current.detail}
+            </>
+          ) : (
+            summary
+          )}
+        </p>
+        <div className="flex items-center gap-1.5" aria-hidden>
+          <span className="mr-1">{less}</span>
+          {HEAT.map((c) => (
+            <span key={c} className={cx("size-2.5 rounded-[3px]", c)} />
+          ))}
+          <span className="ml-1">{more}</span>
+        </div>
+      </div>
+      <table id={tableId} className="sr-only">
+        <caption>{title}</caption>
+        <tbody>
+          {days
+            .filter((d) => d.value > 0)
+            .map((d) => (
+              <tr key={d.key}>
+                <th scope="row">{d.label}</th>
+                <td>{d.detail}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </figure>
   );
 }

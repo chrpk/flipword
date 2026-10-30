@@ -263,6 +263,8 @@ describe("api", () => {
     expect(stats.today.durationMs).toBe(3000);
     expect(stats.streak).toBe(1);
     expect(stats.states).toMatchObject({ new: 122, learning: 1 });
+    expect(stats.calendar).toHaveLength(365);
+    expect(stats.calendar.at(-1)).toEqual({ day: stats.daily.at(-1)!.day, reviews: 1 });
 
     const restored = await post<CardDto>("/api/reviews/undo", { logId: graded.logId });
     expect(restored).toMatchObject({ state: State.New, reps: 0 });
