@@ -22,7 +22,7 @@ function DeckCard({ deck, index }: { deck: DeckSummary; index: number }) {
         <h2 className="flex items-center gap-1.5 font-semibold tracking-tight">
           <Link
             to={`/decks/${deck.id}`}
-            className="truncate after:absolute after:inset-0 after:rounded-xl focus:outline-none"
+            className="min-w-0 truncate after:absolute after:inset-0 after:rounded-xl focus:outline-none"
           >
             {deck.name}
           </Link>
@@ -152,7 +152,8 @@ export function DecksPage() {
               </Button>
             </Card>
           )}
-          <section aria-label={t("nav.decks")} className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* grid-cols-1 (not the implicit auto column): a long deck name truncates instead of widening the page. */}
+          <section aria-label={t("nav.decks")} className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {decks.data.map((d, i) => (
               <DeckCard key={d.id} deck={d} index={i} />
             ))}
