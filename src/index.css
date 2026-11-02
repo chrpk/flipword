@@ -30,6 +30,13 @@
   --flag-3: #1baf7a;
   --flag-4: #eda100;
   --flag-5: #e87ba4;
+  /* Liquid glass (the phone tab bar): a tinted, blurred pane with a lit top edge. */
+  --glass-bg: hsl(0 0% 100% / 0.72);
+  --glass-sheen: hsl(0 0% 100% / 0.35);
+  --glass-edge: hsl(0 0% 100% / 0.75);
+  --glass-shine: hsl(0 0% 100% / 0.95);
+  --glass-shadow: 0 12px 32px -10px hsl(240 10% 4% / 0.28), 0 2px 8px hsl(240 10% 4% / 0.08);
+  --glass-lens: hsl(240 10% 4% / 0.07);
   color-scheme: light;
 }
 
@@ -58,6 +65,12 @@
   --flag-3: #199e70;
   --flag-4: #c98500;
   --flag-5: #d55181;
+  --glass-bg: hsl(240 6% 10% / 0.7);
+  --glass-sheen: hsl(0 0% 100% / 0.06);
+  --glass-edge: hsl(0 0% 100% / 0.12);
+  --glass-shine: hsl(0 0% 100% / 0.2);
+  --glass-shadow: 0 12px 32px -10px hsl(0 0% 0% / 0.7), 0 2px 8px hsl(0 0% 0% / 0.3);
+  --glass-lens: hsl(0 0% 100% / 0.12);
   color-scheme: dark;
 }
 
@@ -228,6 +241,38 @@
 
   dialog[open]::backdrop {
     animation: var(--animate-fade-in);
+  }
+
+  .glass {
+    background: linear-gradient(180deg, var(--glass-sheen), transparent 70%), var(--glass-bg);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+    border: 1px solid var(--glass-edge);
+    box-shadow:
+      inset 0 1px 0 var(--glass-shine),
+      var(--glass-shadow);
+  }
+
+  /* No blur to see through, or the person asked for less transparency: a solid pane reads better. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background: var(--color-card);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background: var(--color-card);
+    }
+  }
+
+  /* The active tab's lens slides between tabs. */
+  .glass-lens {
+    background: var(--glass-lens);
+    box-shadow: inset 0 1px 0 var(--glass-shine);
+    transition:
+      transform 450ms var(--ease-spring),
+      opacity 200ms ease-out;
   }
 
   .toast-out {

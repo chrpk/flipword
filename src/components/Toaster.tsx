@@ -9,7 +9,7 @@ export function Toaster() {
     <div
       aria-live="polite"
       // Below the 4rem header: study controls and primary actions live at the bottom on small screens.
-      className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-4 pt-[calc(4.75rem+env(safe-area-inset-top))]"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-[calc(4.75rem+env(safe-area-inset-top))]"
     >
       {items.map((t) => (
         <div

@@ -185,7 +185,8 @@ export function SettingsPage() {
             </div>
           </Section>
 
-          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t bg-background px-4 py-4 sm:mx-0 sm:rounded-lg sm:border">
+          {/* On phones it rides just above the tab bar. */}
+          <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 flex justify-end gap-2 rounded-lg border bg-background px-4 py-4 sm:bottom-0">
             <Button variant="ghost" disabled={!dirty || save.isPending} onClick={() => setForm(initial)}>
               {t("common.reset")}
             </Button>

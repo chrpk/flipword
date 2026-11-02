@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarChart3, Compass, Layers, Settings, Trophy } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, NavLink, Outlet, useLocation, useMatches } from "react-router";
+import { Link, matchPath, Navigate, NavLink, Outlet, useLocation, useMatches } from "react-router";
 import { AchievementWatcher } from "../features/achievements/AchievementWatcher";
 import { api, queryKeys } from "../lib/api";
 import { cx } from "./classes";
@@ -63,9 +63,34 @@ function Avatar({ name, image }: { name: string; image: string | null }) {
   );
 }
 
+/**
+ * The phone tab bar shrinks while the page scrolls down, out of the content's way, and grows back on scrolling up,
+ * near the top, or on a tap (as on iPhone).
+ */
+function useCompactOnScroll() {
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      // iOS rubber-bands past both ends: clamp, so the bounce at the bottom doesn't read as scrolling up.
+      const y = Math.min(Math.max(window.scrollY, 0), document.documentElement.scrollHeight - window.innerHeight);
+      if (y < 40) setCompact(false);
+      else if (y - last > 8) setCompact(true);
+      else if (last - y > 8) setCompact(false);
+      else return; // jitter: keep measuring from the same point
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return [compact, setCompact] as const;
+}
+
 export function AppLayout() {
   const { t } = useTranslation();
   const me = useMe();
+  const location = useLocation();
+  const [compact, setCompact] = useCompactOnScroll();
   const nav = [
     { to: "/", label: t("nav.decks"), icon: Layers, end: true },
     { to: "/discover", label: t("nav.discover"), icon: Compass, end: false },
@@ -73,6 +98,8 @@ export function AppLayout() {
     { to: "/achievements", label: t("nav.achievements"), icon: Trophy, end: false },
     { to: "/settings", label: t("nav.settings"), icon: Settings, end: false },
   ];
+  // -1 on pages outside the tabs (a deck, import): the tab bar's lens then fades out.
+  const activeTab = nav.findIndex(({ to, end }) => matchPath({ path: to, end }, location.pathname));
 
   return (
     <div className="min-h-dvh">
@@ -82,11 +109,12 @@ export function AppLayout() {
       >
         {t("nav.skipToContent")}
       </a>
-      <header className="sticky top-0 z-50 border-b bg-background">
+      {/* Phones have no top bar: the tab bar at the bottom covers navigation. */}
+      <header className="sticky top-0 z-50 hidden border-b bg-background sm:block">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5 rounded-md" aria-label={t("app.name")}>
             <Logo className="size-7" />
-            <span className="hidden text-lg font-semibold tracking-tight sm:inline">{t("app.name")}</span>
+            <span className="text-lg font-semibold tracking-tight">{t("app.name")}</span>
           </Link>
           <nav aria-label={t("nav.main")} className="flex items-center gap-1">
             {nav.map(({ to, label, icon: Icon, end }) => (
@@ -102,8 +130,7 @@ export function AppLayout() {
                 }
               >
                 <Icon className="size-4" aria-hidden />
-                <span className="hidden sm:inline">{label}</span>
-                <span className="sr-only sm:hidden">{label}</span>
+                {label}
               </NavLink>
             ))}
             <Link to="/settings" className="ml-2 rounded-full" aria-label={me.user.name}>
@@ -112,9 +139,68 @@ export function AppLayout() {
           </nav>
         </div>
       </header>
-      <main id="main" className="enter-children mx-auto max-w-5xl px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
+      <main
+        id="main"
+        className="enter-children mx-auto max-w-5xl px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-12 sm:pb-24"
+      >
         <Outlet />
       </main>
+
+      {/* Phone tab bar: a floating glass pill within thumb reach; pages scroll on underneath it. Compact, the first tap
+          only grows it back, so a tab is never hit blind; focusing it from the keyboard grows it too. */}
+      <nav
+        aria-label={t("nav.main")}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:hidden"
+      >
+        <div
+          className={cx(
+            "glass pointer-events-auto relative mx-auto grid w-full grid-cols-5 rounded-full transition-[max-width,padding] duration-500 ease-spring",
+            compact ? "max-w-64 p-1" : "max-w-md p-1.5",
+          )}
+          onClickCapture={(e) => {
+            if (!compact) return;
+            e.preventDefault();
+            e.stopPropagation();
+            setCompact(false);
+          }}
+          // Only keyboard focus: a tap focuses the link too, before its click, and would skip the grow-only first tap.
+          onFocus={(e) => e.target.matches(":focus-visible") && setCompact(false)}
+        >
+          <span
+            aria-hidden
+            className={cx(
+              "glass-lens absolute rounded-full",
+              compact ? "inset-y-1 left-1 w-[calc((100%-0.5rem)/5)]" : "inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/5)]",
+              activeTab < 0 && "opacity-0",
+            )}
+            style={{ transform: `translateX(${Math.max(activeTab, 0) * 100}%)` }}
+          />
+          {nav.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cx(
+                  "relative flex min-w-0 flex-col items-center justify-center rounded-full text-[10px] font-medium transition-[height,color,scale] duration-500 ease-spring active:scale-90 active:duration-100",
+                  compact ? "h-10" : "h-14",
+                  isActive ? "text-foreground" : "text-muted-foreground",
+                )
+              }
+            >
+              <Icon className="size-5 shrink-0" aria-hidden />
+              <span
+                className={cx(
+                  "max-w-full truncate pt-0.5 leading-3.5 transition-[max-height,opacity] duration-300",
+                  compact ? "max-h-0 opacity-0" : "max-h-5",
+                )}
+              >
+                {label}
+              </span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
