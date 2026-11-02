@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Sign-in only accepts BETTER_AUTH_URL's origin (http://localhost:5173 locally): fail when the port is taken
+  // rather than quietly moving to one where every auth request is rejected as "Invalid origin".
+  server: { port: 5173, strictPort: true },
   plugins: [
     react(),
     tailwindcss(),
