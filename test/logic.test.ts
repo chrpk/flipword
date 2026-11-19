@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { parseAchievementId, reachedAchievements, streaks } from "../shared/achievements";
 import { createScheduler, gradeCard, intervalParts, isLeechLapse, newSrsFields, previewDue, Rating, State } from "../shared/srs";
-import type { CardDto } from "../shared/types";
+import type { PlayCard } from "../shared/types";
+import { scoreIsTime } from "../shared/games";
 import { guessColumns, looksLikeHeader, parseDelimited } from "../src/features/import/csv";
 import { ankiFieldToText } from "../src/features/import/text";
 import { burySiblings, dropNote, putBack, remainingCounts, requeue, takeNext } from "../src/features/study/session";
@@ -9,11 +10,23 @@ import { env } from "cloudflare:test";
 import { timeZoneOffset } from "../shared/time";
 import { getAuth } from "../worker/auth";
 import { reviewTime } from "../worker/routes/study";
-import { compareAnswer } from "../src/features/study/typing";
+import { compareAnswer, judgeTyped } from "../src/features/study/typing";
+import { gameRating } from "../worker/routes/games";
+import { pickVoice } from "../src/lib/voices";
+import { typedPoints } from "../src/features/games/scoring";
 import {
-  buildMatch,
+  accentChars,
   buildQuiz,
+  buildShowdown,
+  dealMatch,
+  findCloze,
+  hintPattern,
+  matchCards,
   nextStatement,
+  pickDistractors,
+  refillMatch,
+  requeue as requeueTurn,
+  turns,
   scrambleable,
   scrambleLayout,
   scrambleLetters,
@@ -23,8 +36,9 @@ import {
 
 const NOW = Date.UTC(2026, 9, 28, 12);
 
-function card(id: string, patch: Partial<CardDto> = {}): CardDto {
+function card(id: string, patch: Partial<PlayCard> = {}): PlayCard {
   return {
+    confusedWith: [],
     id,
     deckId: "d",
     noteId: id,
@@ -193,13 +207,32 @@ describe("games", () => {
     expect(buildQuiz(words.slice(0, 2), 2, seeded(3))[0].options).toHaveLength(2);
   });
 
-  it("builds match boards with unambiguous pairs", () => {
+  it("builds match decks with unambiguous pairs", () => {
     const dupes = [...words, card("again", { front: "uno", back: "other" }), card("same", { front: "x", back: "n1" })];
-    const tiles = buildMatch(dupes, 6, seeded(5));
-    expect(tiles).toHaveLength(12);
-    const fronts = tiles.filter((t) => t.side === "word").map((t) => t.text);
-    expect(new Set(fronts).size).toBe(fronts.length);
-    for (const t of tiles) expect(tiles.filter((o) => o.cardId === t.cardId)).toHaveLength(2);
+    expect(matchCards(dupes, 10).map((c) => c.id)).toEqual(words.map((c) => c.id));
+    expect(matchCards(dupes, 3)).toHaveLength(3);
+  });
+
+  it("refills the match board without leaving the newcomers in the cleared slots", () => {
+    const [a, b, c, d, e] = words;
+    let board = dealMatch([a, b, c, d], seeded(5));
+    const ids = (xs: (PlayCard | null)[]) => xs.map((x) => x?.id).sort();
+    expect(ids(board.words)).toEqual(ids(board.meanings));
+    let movedMeaning = 0;
+    for (let i = 0; i < 40; i++) {
+      const before = dealMatch([a, b, c, d], seeded(i));
+      const after = refillMatch(before, a, e, seeded(i + 100));
+      expect(after.words[before.words.indexOf(a)]).toBe(e);
+      expect(after.words.filter((x) => x === e)).toHaveLength(1);
+      expect(after.meanings.filter((x) => x === e)).toHaveLength(1);
+      expect(after.meanings).not.toContain(a);
+      if (after.meanings.indexOf(e) !== before.meanings.indexOf(a)) movedMeaning++;
+    }
+    expect(movedMeaning).toBeGreaterThan(20);
+    // With nothing left to deal, the pair's slots empty.
+    board = refillMatch(board, b, undefined);
+    expect(board.words).toContain(null);
+    expect(board.meanings).toContain(null);
   });
 
   it("makes true and false statements and never repeats the previous word", () => {
@@ -210,11 +243,138 @@ describe("games", () => {
       const s = nextStatement(words, prev, random);
       expect(s.card.id).not.toBe(prev?.id);
       expect(s.isTrue).toBe(s.meaning === s.card.back);
+      expect(s.meaning).toBe(s.meaningCard.back);
       if (s.isTrue) truths++;
       prev = s.card;
     }
     expect(truths).toBeGreaterThan(60);
     expect(truths).toBeLessThan(140);
+  });
+
+  it("picks random distractors for new words and look-alikes or past confusions for known ones", () => {
+    const pool = ["gato", "gata", "pato", "perro", "casa", "mesa", "silla", "libro"].map((w, i) => card(w, { front: w, back: `m${i}` }));
+    const fresh = pool[0];
+    const known = { ...pool[0], state: State.Review, confusedWith: ["libro"] };
+    const picks = (target: PlayCard, seed: number) => pickDistractors(target, pool, "word", 3, seeded(seed)).map((c) => c.front);
+    // Known: the confused word first, then the closest spellings (equally close, in either order).
+    for (let i = 0; i < 10; i++) {
+      const [first, ...rest] = picks(known, i);
+      expect(first).toBe("libro");
+      expect(rest.sort()).toEqual(["gata", "pato"]);
+    }
+    // New: not always the look-alikes.
+    const seen = new Set(Array.from({ length: 20 }, (_, i) => picks(fresh, i).join()));
+    expect(seen.size).toBeGreaterThan(3);
+    // Never the answer itself, a duplicate, or another word with the same meaning (a second right answer).
+    const twin = card("twin", { front: "felino", back: "m0" });
+    const dup = card("dup", { front: "GATO ", back: "zz" });
+    for (let i = 0; i < 20; i++) {
+      const ids = pickDistractors(known, [...pool, twin, dup], "word", 3, seeded(i)).map((c) => c.id);
+      expect(ids).not.toContain("twin");
+      expect(ids).not.toContain("dup");
+      expect(ids).not.toContain("gato");
+    }
+    const q = buildQuiz([known, ...pool.slice(1)], 1, seeded(3))[0];
+    expect(q.optionCards[q.answer].id).toBe("gato");
+    expect(q.options).toEqual(q.optionCards.map((c) => (q.direction === "word" ? c.back : c.front)));
+  });
+
+  it("brings a missed question back a couple of places later, once per miss", () => {
+    const queue = turns(["a", "b", "c", "d", "e"]);
+    const back = requeueTurn(queue, 1, queue[1]);
+    expect(back.map((t) => `${t.item}${t.attempt}`)).toEqual(["a1", "b1", "c1", "d1", "b2", "e1"]);
+    // Near the end it simply goes last.
+    expect(requeueTurn(queue, 4, queue[4]).map((t) => t.item)).toEqual(["a", "b", "c", "d", "e", "e"]);
+  });
+
+  it("finds a card's word in its example sentence", () => {
+    expect(findCloze("La luna brilla esta noche.", "la luna", "es")).toMatchObject({
+      before: "",
+      gap: "La luna",
+      after: " brilla esta noche.",
+      // Leaving out the article is "almost".
+      almost: ["luna"],
+    });
+    // Without its article.
+    expect(findCloze("Hoy hace sol.", "el sol", "es")).toMatchObject({ before: "Hoy hace ", gap: "sol", after: "." });
+    // Whole words only: "sol" isn't in "solo".
+    expect(findCloze("Estoy solo.", "el sol", "es")).toBeNull();
+    // Notes in brackets are ignored.
+    expect(findCloze("Me gusta correr.", "correr (v.)", "es")?.gap).toBe("correr");
+    // An inflected form, with the dictionary form as "almost".
+    expect(findCloze("Nosotros hablamos mucho.", "hablar", "es")).toMatchObject({ gap: "hablamos", accepted: ["hablamos"], almost: ["hablar"] });
+    // Short words don't match loosely: "pero" is not "perro".
+    expect(findCloze("Pero no hoy.", "perro", "es")).toBeNull();
+    // Languages without spaces match inside the sentence.
+    expect(findCloze("私は猫が好きです。", "猫", "ja")).toMatchObject({ before: "私は", gap: "猫", after: "が好きです。" });
+    expect(findCloze("", "猫", "ja")).toBeNull();
+    // Composed and decomposed accents match.
+    expect(findCloze("Un café, por favor.", "cafe\u0301", "es")?.gap).toBe("café");
+  });
+
+  it("builds graded hints that keep the word's shape", () => {
+    expect(hintPattern("la casa", 0)).toBe("");
+    expect(hintPattern("la casa", 1)).toBe("_ _   _ _ _ _");
+    expect(hintPattern("la casa", 2)).toBe("l _   _ _ _ _");
+    expect(hintPattern("la casa", 3)).toBe("l a   c _ _ _");
+    expect(hintPattern("¿qué?", 2)).toBe("¿ q _ _ ?");
+  });
+
+  it("offers an accent strip only for Latin-script decks with special letters", () => {
+    expect(accentChars(["café", "niño", "niña", "año", "casa"])).toEqual(["ñ", "é"]);
+    expect(accentChars(["casa", "perro"])).toEqual([]);
+    expect(accentChars(["привет", "дом"])).toEqual([]);
+  });
+
+  it("plans a showdown phase by phase, falling back to a pick for words that can't be tiled", () => {
+    const plan = buildShowdown([...words.slice(0, 3), card("a", { front: "a" })], 4, seeded(9));
+    expect(plan.map((t) => t.phase)).toEqual(["pick", "pick", "pick", "pick", "tiles", "tiles", "tiles", "tiles", "typed", "typed", "typed", "typed"]);
+    expect(plan.filter((t) => t.fallback).map((t) => [t.card.id, t.phase])).toEqual([["a", "tiles"]]);
+  });
+
+  it("judges typed answers with lenient accents and near forms", () => {
+    expect(judgeTyped("cafe\u0301", ["café"]).correct).toBe(true);
+    expect(compareAnswer("cafe\u0301", "café").correct).toBe(true);
+    expect(judgeTyped("cafe", ["café"])).toMatchObject({ correct: false, nearMiss: false });
+    expect(judgeTyped("cafe", ["café"], { lenientAccents: true })).toMatchObject({ correct: true, nearMiss: true });
+    expect(judgeTyped("hablar", ["hablamos"], { almost: ["hablar"] })).toMatchObject({ correct: true, nearMiss: true });
+    expect(judgeTyped("Hablamos", ["hablamos"], { almost: ["hablar"] })).toMatchObject({ correct: true, nearMiss: false });
+  });
+
+  it("scores and rates typed answers by how much help they needed", () => {
+    expect(typedPoints({ correct: true, hints: 0, nearMiss: false })).toBe(10);
+    expect(typedPoints({ correct: true, hints: 2, nearMiss: true })).toBe(2);
+    expect(typedPoints({ correct: true, hints: 3, nearMiss: true })).toBe(1);
+    expect(typedPoints({ correct: false, hints: 0, nearMiss: false })).toBe(0);
+    expect(gameRating({ correct: false, hints: 0, nearMiss: false })).toBe(Rating.Again);
+    expect(gameRating({ correct: true, hints: 1, nearMiss: false })).toBe(Rating.Hard);
+    expect(gameRating({ correct: true, hints: 0, nearMiss: true })).toBe(Rating.Hard);
+    expect(gameRating({ correct: true, hints: 0, nearMiss: false })).toBe(Rating.Good);
+    expect(scoreIsTime("match", "standard")).toBe(true);
+    expect(scoreIsTime("match", "relaxed")).toBe(false);
+    expect(scoreIsTime("truefalse", "standard")).toBe(false);
+  });
+
+  it("asks words with photos from the photo, and words by sound only when audio is on", () => {
+    const withPhoto = words.map((w, i) => (i % 2 ? { ...w, imageKey: `k${i}` } : w));
+    const quiz = Array.from({ length: 20 }, (_, i) => buildQuiz(withPhoto, 6, seeded(i), { audio: true })).flat();
+    const photo = quiz.filter((q) => q.cue === "photo");
+    expect(photo.length).toBeGreaterThan(0);
+    // A photo asks for the word.
+    for (const q of photo) expect([q.card.imageKey !== null, q.direction]).toEqual([true, "meaning"]);
+    // A sound asks for the meaning.
+    for (const q of quiz.filter((q) => q.cue === "audio")) expect(q.direction).toBe("word");
+    expect(quiz.some((q) => q.cue === "audio")).toBe(true);
+    expect(buildQuiz(words, 6, seeded(1)).every((q) => q.cue === "text")).toBe(true);
+  });
+
+  it("matches speech voices however the platform writes the language", () => {
+    const voice = (lang: string, localService = true) => ({ lang, localService });
+    const voices = [voice("en-US"), voice("es_MX", false), voice("es_ES"), voice("spa-ES-f000")];
+    expect(pickVoice(voices, "es-ES")?.lang).toBe("es_ES");
+    expect(pickVoice(voices, "es")?.lang).toBe("es_ES");
+    expect(pickVoice([voice("en-GB"), voice("spa-US-f000")], "es")?.lang).toBe("spa-US-f000");
+    expect(pickVoice([voice("en-GB")], "fr")).toBeUndefined();
   });
 
   it("multiplies streaks up to x4", () => {

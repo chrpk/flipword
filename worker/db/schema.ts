@@ -91,6 +91,10 @@ export const userSettings = sqliteTable("user_settings", {
   flagNames: text("flag_names").notNull().default("[]"),
   /** IANA time zone reported by the user's browser; used for day boundaries when a request doesn't send one. */
   timeZone: text("time_zone"),
+  /** Typed game answers on due words count as reviews (off by default: games don't reschedule). */
+  gameReviews: integer("game_reviews", { mode: "boolean" }).notNull().default(false),
+  /** Games accept a typed word with a missing or wrong accent as "almost" (still scored a little lower). */
+  lenientAccents: integer("lenient_accents", { mode: "boolean" }).notNull().default(false),
   updatedAt: integer("updated_at").notNull().default(now),
 });
 
@@ -183,6 +187,8 @@ export const reviewLog = sqliteTable(
     learningSteps: integer("learning_steps").notNull(),
     review: integer("review").notNull(),
     durationMs: integer("duration_ms").notNull().default(0),
+    /** "study", or "game:<id>" for a typed game answer counted as a review (so optimisation can leave it out). */
+    source: text("source").notNull().default("study"),
   },
   (t) => [
     index("review_log_user_review_idx").on(t.userId, t.review),
@@ -203,6 +209,18 @@ export const practiceLog = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     game: text("game").notNull(),
     correct: integer("correct", { mode: "boolean" }).notNull(),
+    /** How the answer was given (shared/games.ts ANSWER_FORMATS); empty for answers logged before formats existed. */
+    format: text("format").notNull().default(""),
+    /** Hints used before answering. */
+    hints: integer("hints").notNull().default(0),
+    /** 1 for the first try at a word in a game, 2+ when a missed word came back. */
+    attempt: integer("attempt").notNull().default(1),
+    /** Time from the question appearing to the answer. */
+    latencyMs: integer("latency_ms"),
+    /** Accepted as "almost": a slipped accent, or the dictionary form where the sentence needs another form. */
+    nearMiss: integer("near_miss", { mode: "boolean" }).notNull().default(false),
+    /** For a wrong pick: the card whose text was picked instead, to find words the learner confuses. */
+    confusedWith: text("confused_with"),
     createdAt: integer("created_at").notNull(),
   },
   (t) => [index("practice_log_card_idx").on(t.cardId, t.createdAt), index("practice_log_user_idx").on(t.userId, t.createdAt)],
@@ -220,6 +238,8 @@ export const gameSession = sqliteTable(
       .notNull()
       .references(() => deck.id, { onDelete: "cascade" }),
     game: text("game").notNull(),
+    /** shared/games.ts GAME_MODES; "classic" marks Match games from before the board refilled (a different best). */
+    mode: text("mode").notNull().default("standard"),
     score: integer("score").notNull(),
     correct: integer("correct").notNull(),
     wrong: integer("wrong").notNull(),

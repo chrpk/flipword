@@ -383,12 +383,23 @@ export function Progress({
 }
 
 /** A bar that drains from full to empty over `durationMs`, animated entirely by CSS (no re-render per frame). */
-export function Countdown({ durationMs, className = "h-1.5 rounded-full", label }: { durationMs: number; className?: string; label?: string }) {
+export function Countdown({
+  durationMs,
+  className = "h-1.5 rounded-full",
+  label,
+  paused = false,
+}: {
+  durationMs: number;
+  className?: string;
+  label?: string;
+  /** Freezes the bar where it is (the clock it shows is paused too). */
+  paused?: boolean;
+}) {
   return (
     <div role="timer" aria-label={label} className={clsx("overflow-hidden bg-muted", className)}>
       <div
         className="h-full origin-left bg-primary"
-        style={{ animation: `countdown ${durationMs}ms linear forwards` }}
+        style={{ animation: `countdown ${durationMs}ms linear forwards`, animationPlayState: paused ? "paused" : "running" }}
       />
     </div>
   );

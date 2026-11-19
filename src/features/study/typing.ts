@@ -10,7 +10,11 @@ export interface TypedResult {
   parts: DiffPart[];
 }
 
-const normalize = (s: string) => s.trim().replace(/\s+/g, " ");
+/** One Unicode form (so a precomposed "é" equals "e" + combining accent), no outer or repeated spaces. */
+const normalize = (s: string) => s.normalize("NFC").trim().replace(/\s+/g, " ");
+
+/** The text without accents and other combining marks: "café" → "cafe". */
+export const stripAccents = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
 
 /**
  * Compares a typed answer with the expected one, like Anki's "type in the answer": typed characters that match are
@@ -55,4 +59,29 @@ export function compareAnswer(typed: string, expected: string, locale = "en"): T
   }
 
   return { correct: al.join("") === bl.join(""), parts };
+}
+
+export interface Judged extends TypedResult {
+  /** Right, but only "almost": a slipped accent (when lenient), or an accepted near form. */
+  nearMiss: boolean;
+}
+
+/**
+ * Judges a typed game answer against every accepted spelling. With `lenientAccents`, an answer that is right except
+ * for accents counts as "almost"; so does any of the `almost` forms. The diff is always against the first accepted
+ * spelling, which is what the learner is shown.
+ */
+export function judgeTyped(
+  typed: string,
+  accepted: readonly string[],
+  { almost = [], lenientAccents = false, locale = "en" }: { almost?: readonly string[]; lenientAccents?: boolean; locale?: string } = {},
+): Judged {
+  const shown = compareAnswer(typed, accepted[0], locale);
+  const exact = (expected: string) => compareAnswer(typed, expected, locale).correct;
+  const loose = (expected: string) => compareAnswer(stripAccents(typed), stripAccents(expected), locale).correct;
+  if (accepted.some(exact)) return { ...shown, correct: true, nearMiss: false };
+  if ((lenientAccents && accepted.some(loose)) || almost.some(exact) || (lenientAccents && almost.some(loose))) {
+    return { ...shown, correct: true, nearMiss: true };
+  }
+  return { ...shown, correct: false, nearMiss: false };
 }

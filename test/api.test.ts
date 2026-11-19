@@ -14,6 +14,7 @@ import type {
   GameBest,
   ImportResult,
   Me,
+  PlayCard,
   PracticeResult,
   PublicCardList,
   PublicDeck,
@@ -392,18 +393,19 @@ describe("api", () => {
         { cardId: "someone-elses-card", correct: true },
       ],
     });
-    expect(first).toEqual({ best: 3, isBest: true });
+    expect(first).toEqual({ best: 3, isBest: true, reviewed: 0 });
     const worse = await post<PracticeResult>("/api/practice", { deckId: deck.id, game: "quiz", score: 1, durationMs: 1, answers: [] });
-    expect(worse).toEqual({ best: 3, isBest: false });
+    expect(worse).toEqual({ best: 3, isBest: false, reviewed: 0 });
     // Timed games keep the lowest score.
     await post("/api/practice", { deckId: deck.id, game: "match", score: 9000, durationMs: 9000, answers: [] });
     const faster = await post<PracticeResult>("/api/practice", { deckId: deck.id, game: "match", score: 7000, durationMs: 7000, answers: [] });
-    expect(faster).toEqual({ best: 7000, isBest: true });
+    expect(faster).toEqual({ best: 7000, isBest: true, reviewed: 0 });
 
     const bests = await api<GameBest[]>(`/api/decks/${deck.id}/games`);
-    expect(bests.find((b) => b.game === "quiz")).toEqual({ game: "quiz", best: 3, plays: 2 });
-    expect(bests.find((b) => b.game === "match")).toEqual({ game: "match", best: 7000, plays: 2 });
-    expect(bests.find((b) => b.game === "spell")).toEqual({ game: "spell", best: null, plays: 0 });
+    expect(bests.find((b) => b.game === "quiz")).toEqual({ game: "quiz", best: 3, relaxedBest: null, plays: 2, available: 5 });
+    expect(bests.find((b) => b.game === "match")).toEqual({ game: "match", best: 7000, relaxedBest: null, plays: 2, available: 5 });
+    expect(bests.find((b) => b.game === "spell")).toEqual({ game: "spell", best: null, relaxedBest: null, plays: 0, available: 5 });
+    expect(bests.find((b) => b.game === "gapline")).toMatchObject({ available: 0 });
 
     const list = await api<CardList>(`/api/decks/${deck.id}/cards?q=uno`);
     expect(list.cards[0]).toMatchObject({ front: "uno", correctCount: 3, wrongCount: 1 });
@@ -416,6 +418,149 @@ describe("api", () => {
 
     await post("/api/practice", { deckId: deck.id, game: "chess", score: 1, durationMs: 1, answers: [] }, 400);
   });
+
+  it("deals the words a game needs most, and remembers confusions", () =>
+    asNewUser(async () => {
+      const deck = await post<DeckSummary>("/api/decks", { name: "Pools" }, 201);
+      await post<ImportResult>(`/api/decks/${deck.id}/cards/bulk`, {
+        cards: [
+          { front: "nuevo", back: "new" },
+          { front: "debido", back: "due" },
+          { front: "fallado", back: "missed" },
+          { front: "sabido", back: "known later" },
+          { front: "frase", back: "sentence", example: "Una frase corta." },
+        ],
+      });
+      const all = await api<CardDto[]>(`/api/decks/${deck.id}/play?count=10`);
+      const id = (front: string) => all.find((c) => c.front === front)!.id;
+      const now = Date.now();
+      // "debido" is due today; "sabido" graduated but isn't due for a month; "fallado" was missed in a game.
+      await env.DB.prepare("update card set state = ?, due = ?, stability = 5, last_review = ? where id = ?")
+        .bind(State.Review, now - 1000, now - 5 * 86_400_000, id("debido"))
+        .run();
+      await env.DB.prepare("update card set state = ?, due = ?, stability = 30, last_review = ? where id = ?")
+        .bind(State.Review, now + 30 * 86_400_000, now - 86_400_000, id("sabido"))
+        .run();
+      await post("/api/practice", {
+        deckId: deck.id,
+        game: "quiz",
+        score: 0,
+        durationMs: 1000,
+        answers: [{ cardId: id("fallado"), correct: false, format: "choice", confusedWith: id("nuevo") }],
+      });
+
+      const fronts = async (query: string) =>
+        (await api<PlayCard[]>(`/api/decks/${deck.id}/play?${query}`)).map((c) => c.front);
+      // Practice: missed, then due, then seen words; brand-new words last.
+      expect((await fronts("count=2&pool=practice"))).toEqual(["fallado", "debido"]);
+      expect((await fronts("count=5&pool=practice")).slice(2, 3)).toEqual(["sabido"]);
+      // Known: graduated words first.
+      expect((await fronts("count=2&pool=known")).sort()).toEqual(["debido", "sabido"]);
+      // Words with a sentence come first when a game needs one.
+      expect((await fronts("count=1&pool=practice&needs=example"))).toEqual(["frase"]);
+      // The confusion is reported for both words.
+      const dealt = await api<PlayCard[]>(`/api/decks/${deck.id}/play?count=10&pool=intro`);
+      expect(dealt.find((c) => c.front === "fallado")!.confusedWith).toEqual([id("nuevo")]);
+      expect(dealt.find((c) => c.front === "nuevo")!.confusedWith).toEqual([id("fallado")]);
+      expect(dealt.find((c) => c.front === "debido")!.confusedWith).toEqual([]);
+
+      const log = await env.DB.prepare("select format, attempt, confused_with as w from practice_log where card_id = ?")
+        .bind(id("fallado"))
+        .first();
+      expect(log).toEqual({ format: "choice", attempt: 1, w: id("nuevo") });
+      const bests = await api<GameBest[]>(`/api/decks/${deck.id}/games`);
+      expect(bests.find((b) => b.game === "gapline")).toMatchObject({ available: 1 });
+      await api(`/api/decks/${deck.id}/play?pool=random`, {}, 400);
+    }));
+
+  it("keeps separate bests per mode and none for replays", () =>
+    asNewUser(async () => {
+      const deck = await post<DeckSummary>("/api/decks", { name: "Modes" }, 201);
+      const word = await post<CardDto>(`/api/decks/${deck.id}/cards`, { front: "uno", back: "one" }, 201);
+      const play = (body: object, expected = 200) =>
+        post<PracticeResult>("/api/practice", { deckId: deck.id, durationMs: 1000, answers: [], ...body }, expected);
+
+      expect(await play({ game: "match", score: 9000 })).toMatchObject({ best: 9000, isBest: true });
+      // Relaxed Match is scored in points: higher is better, with its own best.
+      expect(await play({ game: "match", mode: "relaxed", score: 40 })).toMatchObject({ best: 40, isBest: true });
+      expect(await play({ game: "match", mode: "relaxed", score: 30 })).toMatchObject({ best: 40, isBest: false });
+      expect(await play({ game: "truefalse", mode: "relaxed", score: 200 })).toMatchObject({ isBest: true });
+      expect(await play({ game: "spell", mode: "retry", score: 99 })).toEqual({ best: null, isBest: false, reviewed: 0 });
+      const bests = await api<GameBest[]>(`/api/decks/${deck.id}/games`);
+      expect(bests.find((b) => b.game === "match")).toMatchObject({ best: 9000, relaxedBest: 40, plays: 3 });
+      expect(bests.find((b) => b.game === "spell")).toMatchObject({ best: null, plays: 1 });
+
+      // Only timed games have a relaxed mode, and answers must be in a format the game produces.
+      await play({ game: "quiz", mode: "relaxed", score: 1 }, 400);
+      await play({ game: "quiz", score: 1, answers: [{ cardId: word.id, correct: true, format: "typed" }] }, 400);
+      await play({ game: "gapline", score: 1, answers: [{ cardId: word.id, correct: true, format: "choice" }] });
+    }));
+
+  it("counts typed game answers on due words as reviews, only when turned on", () =>
+    asNewUser(async () => {
+      const deck = await post<DeckSummary>("/api/decks", { name: "Game reviews" }, 201);
+      const plain = await post<DeckSummary>("/api/decks", { name: "One way" }, 201);
+      const words = await post<ImportResult>(`/api/decks/${deck.id}/cards/bulk`, {
+        cards: ["uno", "dos", "tres", "cuatro", "cinco"].map((w, i) => ({ front: w, back: String(i + 1) })),
+      });
+      expect(words.created).toBe(5);
+      await post<CardDto>(`/api/decks/${plain.id}/cards`, { front: "seis", back: "6" }, 201);
+      await patch(`/api/decks/${deck.id}`, { reverseCards: true });
+      const now = Date.now();
+      // Every card is due for review.
+      await env.DB.prepare("update card set state = ?, due = ?, stability = 4, difficulty = 5, reps = 3, last_review = ?, scheduled_days = 4 where user_id = (select user_id from deck where id = ?)")
+        .bind(State.Review, now - 1000, now - 4 * 86_400_000, deck.id)
+        .run();
+      const ids = Object.fromEntries((await api<CardDto[]>(`/api/decks/${deck.id}/play?count=10`)).map((c) => [c.front, c.id]));
+      const [seis] = await api<CardDto[]>(`/api/decks/${plain.id}/play?count=10`);
+      const typed = (cardId: string, extra: object = {}) => ({ cardId, correct: true, format: "typed", ...extra });
+      const play = (deckId: string, answers: object[], game = "spell") =>
+        post<PracticeResult>("/api/practice", { deckId, game, score: 10, durationMs: 1000, answers });
+      const reviews = () =>
+        env.DB.prepare(
+          "select c.front, c.reverse, r.rating, r.source from review_log r join card c on c.id = r.card_id where c.deck_id in (?, ?) order by c.front",
+        )
+          .bind(deck.id, plain.id)
+          .all()
+          .then((r) => r.results);
+
+      // Off by default.
+      expect((await play(deck.id, [typed(ids.uno)])).reviewed).toBe(0);
+      expect(await reviews()).toEqual([]);
+
+      await patch("/api/settings", { gameReviews: true });
+      const result = await play(deck.id, [
+        typed(ids.uno),
+        typed(ids.dos, { hints: 1 }),
+        typed(ids.tres, { correct: false }),
+        typed(ids.cuatro, { nearMiss: true }),
+        // Only the first try at a word counts; a retry later in the game doesn't.
+        typed(ids.tres, { attempt: 2 }),
+      ]);
+      expect(result.reviewed).toBe(4);
+      // Producing the word is the reverse card's job; ratings never reach Easy.
+      expect(await reviews()).toEqual([
+        { front: "cuatro", reverse: 1, rating: Rating.Hard, source: "game:spell" },
+        { front: "dos", reverse: 1, rating: Rating.Hard, source: "game:spell" },
+        { front: "tres", reverse: 1, rating: Rating.Again, source: "game:spell" },
+        { front: "uno", reverse: 1, rating: Rating.Good, source: "game:spell" },
+      ]);
+
+      // Once a word was reviewed today, later games leave it alone; recognition answers never count.
+      expect((await play(deck.id, [typed(ids.uno)])).reviewed).toBe(0);
+      expect((await play(deck.id, [{ cardId: ids.cinco, correct: true, format: "choice" }], "quiz")).reviewed).toBe(0);
+      // A word that isn't due doesn't count either.
+      await env.DB.prepare("update card set due = ? where note_id = ?").bind(now + 10 * 86_400_000, ids.cinco).run();
+      expect((await play(deck.id, [typed(ids.cinco)], "gapline")).reviewed).toBe(0);
+      // Without reverse cards, the word's only card is reviewed.
+      expect((await play(plain.id, [typed(seis.id)], "showdown")).reviewed).toBe(1);
+      expect((await reviews()).find((r) => r.front === "seis")).toEqual({ front: "seis", reverse: 0, rating: Rating.Good, source: "game:showdown" });
+      // Study reviews keep their own source.
+      await post("/api/reviews", { cardId: ids.cinco, rating: Rating.Good, reviewedAt: Date.now() });
+      const study = await env.DB.prepare("select source from review_log where card_id = ?").bind(ids.cinco).first();
+      expect(study).toEqual({ source: "study" });
+      await patch("/api/settings", { gameReviews: false });
+    }));
 
   it("lets users mark words as learned", async () => {
     // Earlier tests used up a small daily new-card limit.

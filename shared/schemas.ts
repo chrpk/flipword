@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FLAG_NAME_MAX } from "./flags";
-import { GAMES } from "./games";
+import { ANSWER_FORMATS, CARD_NEEDS, CARD_POOLS, GAME_MODES, GAMES } from "./games";
 import { isValidTimeZone } from "./time";
 
 // Zod otherwise probes for eval support with `Function("")`, which the app's Content-Security-Policy blocks (and
@@ -109,18 +109,40 @@ export const settingsPatch = z
     onboarded: z.boolean(),
     flagNames: z.array(z.string().trim().max(FLAG_NAME_MAX)).length(5),
     timeZone: z.string().max(64).refine(isValidTimeZone, "Unknown time zone"),
+    gameReviews: z.boolean(),
+    lenientAccents: z.boolean(),
   })
   .partial();
+
+export const gameAnswerInput = z.object({
+  cardId: z.string().min(1),
+  correct: z.boolean(),
+  /** How it was answered; older clients leave it out. */
+  format: z.enum(ANSWER_FORMATS).optional(),
+  hints: z.number().int().min(0).max(20).default(0),
+  /** 1 for the first try at a word in this game, 2+ when a missed word came back. */
+  attempt: z.number().int().min(1).max(20).default(1),
+  latencyMs: z.number().int().min(0).max(60 * 60 * 1000).optional(),
+  /** Accepted as "almost" (a slipped accent, or the wrong form of the right word). */
+  nearMiss: z.boolean().default(false),
+  /** For a wrong pick: the card whose text was picked. */
+  confusedWith: z.string().min(1).max(64).optional(),
+});
 
 export const practiceInput = z.object({
   deckId: z.string().min(1),
   game: z.enum(GAMES),
-  /** Points, or milliseconds for timed games where lower is better. */
+  mode: z.enum(GAME_MODES).default("standard"),
+  /** Points, or milliseconds for standard Match, where lower is better. */
   score: z.number().int().min(0).max(10_000_000),
   durationMs: z.number().int().min(0).max(24 * 60 * 60 * 1000),
-  answers: z.array(z.object({ cardId: z.string().min(1), correct: z.boolean() })).max(500),
+  answers: z.array(gameAnswerInput).max(500),
 });
 
 export const tokenInput = z.object({ name: z.string().trim().min(1).max(60) });
 
-export const playQuery = z.object({ count: z.coerce.number().int().min(1).max(100).default(10) });
+export const playQuery = z.object({
+  count: z.coerce.number().int().min(1).max(100).default(10),
+  pool: z.enum(CARD_POOLS).default("intro"),
+  needs: z.enum(CARD_NEEDS).optional(),
+});

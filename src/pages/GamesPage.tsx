@@ -40,7 +40,11 @@ export default function GamesPage() {
           const Icon = GAME_ICONS[game];
           const info = GAME_INFO[game];
           const best = bests.data?.find((b) => b.game === game);
-          const enough = deck.data.total >= info.minCards;
+          const enough = (best?.available ?? deck.data.total) >= info.minCards;
+          const scores = [
+            best?.best != null && t("games.bestLabel", { value: formatBest(game, best.best) }),
+            best?.relaxedBest != null && t("games.relaxedBestLabel", { value: formatBest(game, best.relaxedBest, "relaxed") }),
+          ].filter(Boolean);
           return (
             <Card key={game} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-3">
@@ -50,7 +54,9 @@ export default function GamesPage() {
                 <span
                   className={cx(
                     "rounded-full px-2 py-0.5 text-xs font-medium",
-                    info.kind === "recall" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                    info.kind === "recall" && "bg-primary text-primary-foreground",
+                    info.kind === "scaffolded" && "border text-foreground",
+                    info.kind === "recognition" && "bg-muted text-muted-foreground",
                   )}
                 >
                   {t(`games.kind.${info.kind}`)}
@@ -60,13 +66,15 @@ export default function GamesPage() {
               <p className="mt-1 flex-1 text-sm text-muted-foreground">{t(`games.${game}.description`)}</p>
               <div className="mt-5 flex items-center justify-between gap-3">
                 <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  {best?.best != null ? (
+                  {scores.length > 0 ? (
                     <>
-                      <Trophy className="size-4 text-learning" aria-hidden />
-                      {t("games.bestLabel", { value: formatBest(game, best.best) })}
+                      <Trophy className="size-4 shrink-0 text-learning" aria-hidden />
+                      <span>{scores.join(" · ")}</span>
                     </>
                   ) : enough ? (
                     t("games.notPlayed")
+                  ) : game === "gapline" ? (
+                    t("games.gapline.needsExamplesShort")
                   ) : (
                     t("games.needCards", { count: info.minCards })
                   )}

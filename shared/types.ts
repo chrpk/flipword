@@ -22,6 +22,10 @@ export interface Settings {
   flagNames: string[];
   /** IANA time zone last reported by the user's browser. */
   timeZone: string | null;
+  /** Typed game answers on due words count as reviews. */
+  gameReviews: boolean;
+  /** Games accept a missing or wrong accent as "almost". */
+  lenientAccents: boolean;
 }
 
 export interface Me {
@@ -98,14 +102,26 @@ export interface CardProgress {
 
 export interface GameBest {
   game: GameId;
-  /** Best score (or fastest time for timed games), null if never finished. */
+  /** Best standard score (fastest time for Match), null if never finished. */
   best: number | null;
+  /** Best relaxed-mode score, for timed games; null if never finished. */
+  relaxedBest: number | null;
   plays: number;
+  /** Words in the deck this game can use (for Gap Line: words with an example sentence). */
+  available: number;
 }
 
 export interface PracticeResult {
-  best: number;
+  /** Best for the game and mode, including this one; null for retries, which don't keep a best. */
+  best: number | null;
   isBest: boolean;
+  /** Typed answers that counted as reviews and rescheduled their word. */
+  reviewed: number;
+}
+
+/** A card dealt for a game, with the deck words the learner has picked instead of it before. */
+export interface PlayCard extends CardDto {
+  confusedWith: string[];
 }
 
 export type CardFilter = "all" | "new" | "learning" | "review" | "due" | "learned" | "suspended";

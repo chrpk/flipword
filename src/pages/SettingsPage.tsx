@@ -9,7 +9,7 @@ import { ConnectAssistant } from "../components/ConnectAssistant";
 import { FlagDot } from "../components/Flags";
 import { LegalLinks } from "../components/SiteChrome";
 import { toast } from "../components/toast";
-import { Button, Card, ConfirmDialog, Field, Input, SegmentedControl, Select } from "../components/ui";
+import { Button, Card, Checkbox, ConfirmDialog, Field, Input, SegmentedControl, Select } from "../components/ui";
 import { buttonClass } from "../components/classes";
 import { setUiLocale, UI_LOCALES, type UiLocale } from "../i18n";
 import { api, queryKeys } from "../lib/api";
@@ -32,7 +32,7 @@ function Section({ title, description, children }: { title: string; description?
 
 type StudyForm = Pick<
   Settings,
-  "nativeLang" | "targetLang" | "newPerDay" | "maxReviewsPerDay" | "desiredRetention" | "flagNames"
+  "nativeLang" | "targetLang" | "newPerDay" | "maxReviewsPerDay" | "desiredRetention" | "flagNames" | "gameReviews" | "lenientAccents"
 >;
 
 export function SettingsPage() {
@@ -48,6 +48,8 @@ export function SettingsPage() {
     maxReviewsPerDay: me.settings.maxReviewsPerDay,
     desiredRetention: me.settings.desiredRetention,
     flagNames: me.settings.flagNames,
+    gameReviews: me.settings.gameReviews,
+    lenientAccents: me.settings.lenientAccents,
   };
   const [form, setForm] = useState<StudyForm>(initial);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -164,6 +166,21 @@ export function SettingsPage() {
                 className="w-full accent-[hsl(var(--primary))]"
               />
             </Field>
+          </Section>
+
+          <Section title={t("settings.gamesTitle")} description={t("settings.gamesDescription")}>
+            <Checkbox
+              label={t("settings.gameReviews")}
+              hint={t("settings.gameReviewsHint")}
+              checked={form.gameReviews}
+              onChange={(e) => setForm({ ...form, gameReviews: e.target.checked })}
+            />
+            <Checkbox
+              label={t("settings.lenientAccents")}
+              hint={t("settings.lenientAccentsHint")}
+              checked={form.lenientAccents}
+              onChange={(e) => setForm({ ...form, lenientAccents: e.target.checked })}
+            />
           </Section>
 
           <Section title={t("flags.settingsTitle")} description={t("flags.settingsDescription")}>

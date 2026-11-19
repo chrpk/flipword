@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { CardNeed, CardPool } from "../../shared/games";
 import type {
   cardInput,
   cardPatch,
@@ -21,6 +22,7 @@ import type {
   GameBest,
   ImportResult,
   Me,
+  PlayCard,
   PracticeResult,
   PublicCardList,
   PublicDeck,
@@ -108,7 +110,8 @@ export const api = {
   removeCardImage: (id: string) => request<CardDto>(`/cards/${id}/image`, { method: "DELETE" }),
 
   gameBests: (deckId: string) => request<GameBest[]>(`/decks/${deckId}/games`),
-  playCards: (deckId: string, count: number) => request<CardDto[]>(`/decks/${deckId}/play?count=${count}`),
+  playCards: (deckId: string, params: { count: number; pool: CardPool; needs?: CardNeed }) =>
+    request<PlayCard[]>(`/decks/${deckId}/play?${searchParams({ ...params })}`),
   submitGame: (input: In<typeof practiceInput>) => request<PracticeResult>("/practice", { method: "POST", json: input }),
 
   study: (deckId?: string) => request<StudyQueue>(deckId ? `/study?deckId=${encodeURIComponent(deckId)}` : "/study"),

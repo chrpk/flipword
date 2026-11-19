@@ -27,6 +27,8 @@ people rely on in Anki (scheduling quality, import) and Quizlet (simplicity, fas
 | Desired retention | 0.90 | FSRS parameter, 0.80–0.97 |
 | Theme | system | system / light / dark |
 | Interface language | `en` | Only English ships; strings live in `src/i18n/locales/*.json` |
+| Typed game answers count as reviews | off | See Games |
+| Lenient accents | off | Games accept a word with a missing or wrong accent as "almost" |
 
 ## Decks & cards
 
@@ -115,23 +117,56 @@ people rely on in Anki (scheduling quality, import) and Quizlet (simplicity, fas
 
 ## Games
 
-Per deck, from the deck page's **Games** button. Games never change the review schedule, but their answers count
-towards each word's progress. Each game stores a best score per deck and ends with a results screen (score, right,
-wrong, time, "new best", words to look at again, play again). Suspended words are left out; reverse cards aren't used
-(games ask in both directions on their own).
+Per deck, from the deck page's **Games** button. Every answer counts towards the word's progress; games change the
+review schedule only with the opt-in setting below. Each game keeps a best score per deck (and per mode for timed
+games) and ends with a results screen: score, right/wrong (first tries), time, "new best", words to look at again
+(each with a Listen button), **Play again**, and **Practise these N**. Suspended words are left out; reverse cards
+aren't used (games ask in both directions on their own). These are original games in common vocabulary-game genres,
+not copies of another product's games. The research behind them is `reports/Vocabulary games for flipword.md`.
 
 | Game | Kind | Rules | Score |
 |---|---|---|---|
-| Match | Recognition | 6 words + 6 meanings on a grid; tap a word then its meaning; a wrong pair adds 1 s | Time (lower is better) |
-| Quiz | Recognition | 10 multiple-choice questions, randomly word→meaning or meaning→word, 4 options from the same deck; keys 1–4 | Right answers |
-| True or false | Recognition | 60 s: does this meaning belong to this word? ← / → keys; streak multiplier ×2 at 5, ×3 at 10, ×4 at 15 | Points (10 × multiplier) |
-| Spell it | Recall | Meaning shown, optional audio; type the word; right/wrong/missing letters highlighted; accents count | Right answers |
-| Unscramble | Recall | Rebuild the word from its shuffled letters (tap or type; Backspace removes); spaces and punctuation stay fixed; hint places the next letter | 10 per word, −3 per hint |
+| Match | Recognition | Words in one column, meanings (or a word's photo) in the other; 4 pairs on the board, refilled from a queue of 8; a wrong pair lights up the right partner of the first tile. Timed (a wrong pair adds 1 s) or relaxed (no clock) | Time, lower is better; relaxed: 10 per pair found without a mistake |
+| Quiz | Recognition | 10 multiple-choice questions: word→meaning, meaning→word, photo→word (words with a photo) or sound→meaning (when sound is on); 4 options; keys 1–4 | Right first answers |
+| True or false | Recognition | Does this meaning belong to this word? ← / → keys. A wrong answer stops the clock and shows the true pair. Timed (60 s, pausable) or relaxed (30 statements, no clock); streak multiplier ×2 at 5, ×3 at 10, ×4 at 15 | Points (10 × multiplier) |
+| Spell it | Recall | Meaning (and photo) shown; type the word; graded hints (letter count, first letter, first half) and Listen each cost 3 points | 10 per word, −3 per hint, −2 for "almost" |
+| Unscramble | Scaffolded | Rebuild the word from its shuffled letters (tap or type; Backspace removes) with the meaning shown; spaces and punctuation stay fixed; a hint places the next letter | 10 per word, −3 per hint |
+| Gap Line | Recall | The word's own example sentence with the word blanked and its meaning as a hint. New and learning words are picked from 4 deck words; known words (in review, or marked learned) are typed. Each answer completes the sentence, read aloud when sound is on | Typed as Spell it; a pick is 5 |
+| Showdown | Recall | A boss built from the 6 weakest words (recent misses, learning, often forgotten). Each word is fought three times: pick its meaning, build it from tiles, type it. A right answer is a hit; a wrong one costs one of 5 hearts. Win by landing every hit | Pick 5, tiles/typed as above, a word that came back 2; +10 per heart left on a win |
 
-Minimum deck size: Match 3 words, Quiz 4, True or false 2, Spell it and Unscramble 1. These are original games in
-common vocabulary-game genres, not copies of another product's games; research on Quizlet found recognition games
-(matching) dominate use but recall formats (typing, spelling) work better for retention, so both kinds are offered and
-labelled.
+- **Which words**: games ask the server for the words that need them most. Quiz takes missed and due words first, and
+  welcomes new ones (guess-first introduction). Spell it, Unscramble and Gap Line take missed, due, then seen words,
+  with new words last. Match and True or false prefer words already known, so speed builds fluency. Showdown takes the
+  weakest. Gap Line's deal puts words with an example sentence first; the rest only supply wrong options.
+- **Missed words come back** two questions later in the same game, once (in Showdown, until hit). The repeat is
+  marked "Coming back for another try" and is practice, not points.
+- **Practise these N** replays the missed words in Spell it, or in Unscramble when most of them are long (over 12
+  letters). A replay doesn't set a best score.
+- **Wrong options**: a new word gets random ones; a known word gets look-alikes (edit distance) and words the learner
+  picked instead before (from the answer log). Options never repeat the answer's text or include another word with
+  the same question text.
+- **Gap Line's matcher** finds the word in its sentence: the whole front, then without a short leading article ("la
+  luna" → "luna"; typing just "luna" when the gap is "La luna" is "almost"), then for a single word of 4+ letters an
+  inflected form sharing a long beginning ("hablar" → "hablamos", where typing "hablar" is "almost"). In Japanese,
+  Chinese, Thai and other languages without spaces, a match anywhere in the sentence counts. A word with no confident
+  match is skipped.
+- **Typed answers**: an accent strip (the deck's non-ASCII letters, for Latin-script decks) inserts at the caret;
+  Enter doesn't submit while an IME is composing; composed and decomposed accents compare equal. With **Lenient
+  accents** on, a word right except for its accents is "almost". Answers always show the right spelling after a miss.
+- **Pause**: timed games have a pause button and pause by themselves when the page is hidden.
+- **Sound**: a toggle in the game header, remembered on the device.
+- Minimum usable words: Match 3, Quiz 4, True or false 2, Spell it and Unscramble 1, Gap Line 1 with a matching
+  sentence, Showdown 4.
+
+**Typed game answers count as reviews** (Settings → Games, off by default). For Spell it, Gap Line and Showdown's
+typed answers: the first try at a word that is due now and wasn't reviewed today (in either direction) is graded like a
+study answer: wrong → Again, right with a hint or "almost" → Hard, right → Good, never Easy. Producing the word from its
+meaning is what a reverse card asks, so the review goes to the word's reverse card when the deck has one. Leeches work
+as in study. These reviews are stored with `source = "game:<id>"`. Picking, matching and true-or-false answers never
+change the schedule. The results screen says how many words were rescheduled.
+
+Every game answer is logged with its format (verify, pair, choice, tiles, typed), hints, attempt number, time taken,
+"almost", and, for a wrong pick, the word picked instead.
 
 ## Import
 

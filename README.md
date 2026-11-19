@@ -214,11 +214,18 @@ Not yet supported: OAuth sign-in (needed for claude.ai's remote "custom connecto
 
 ## Games and progress
 
-- `practice_log` stores every game answer; `game_session` stores finished games for best scores.
+- `practice_log` stores every game answer (with format, hints, attempt, latency, "almost" and confusions);
+  `game_session` stores finished games with their mode (`standard`, `relaxed`, `retry`, or `classic` for Match games
+  from before the board refilled) for best scores.
+- `GET /api/decks/:id/play?pool=…&needs=example` deals cards by priority (`poolPriority` in `worker/routes/games.ts`).
+- With the `gameReviews` setting on, `POST /api/practice` also writes study reviews for typed answers (`source` =
+  `game:<id>` in `review_log`).
 - A word's right/wrong counts combine `review_log` (Again = wrong) and `practice_log` across both directions.
 - Games live in `src/features/games/`: pure logic in `logic.ts` (unit-tested), one component per game, and
-  `catalog.tsx` registering them. To add a game: add its id to `shared/games.ts`, write the component, register it in
-  the catalog and add its strings under `games.<id>` in the locale file.
+  `catalog.tsx` registering them. Shared pieces: `hooks.ts` (`useTurns` queues questions and brings misses back,
+  `useStopwatch`, `usePauseWhenHidden`) and `parts/` (`ChoiceGrid`, `TypedAnswer`, `LetterBoard`). To add a game: add
+  its id and `GAME_INFO` entry (kind, pool, answer formats) to `shared/games.ts`, write the component, register it in
+  the catalog, give it an icon in `icons.ts` and add its strings under `games.<id>` in the locale file.
 
 ## Achievements
 

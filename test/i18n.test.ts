@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ACHIEVEMENT_TRACK_IDS } from "../shared/achievements";
-import { GAMES } from "../shared/games";
+import { GAME_KINDS, GAMES } from "../shared/games";
+import { SHOWDOWN_PHASES } from "../src/features/games/logic";
 import { DECK_VISIBILITIES, REPORT_REASONS } from "../shared/schemas";
 import en from "../src/i18n/locales/en.json";
 import { LEGAL_SECTIONS } from "../src/lib/legal";
@@ -36,7 +37,9 @@ describe("i18n", () => {
       ...["again", "hard", "good", "easy"].map((g) => `study.grades.${g}`),
       ...["front", "back", "example"].map((r) => `import.roles.${r}`),
       ...GAMES.flatMap((g) => ["name", "description", "howTo"].map((k) => `games.${g}.${k}`)),
-      ...["recognition", "recall"].map((k) => `games.kind.${k}`),
+      ...GAME_KINDS.map((k) => `games.kind.${k}`),
+      ...["standard", "relaxed"].flatMap((m) => [`games.modes.${m}`, `games.modes.${m}Hint`]),
+      ...SHOWDOWN_PHASES.map((p) => `games.showdown.phases.${p}`),
       ...[1, 2, 3, 4, 5].map((f) => `flags.default.${f}`),
       ...DECK_VISIBILITIES.flatMap((v) => [`deck.${v}`, `deck.${v}Hint`]),
       ...["claude-code", "claude-desktop", "cursor"].map((c) => `mcp.instructions.${c}`),

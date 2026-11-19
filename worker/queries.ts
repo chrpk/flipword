@@ -19,6 +19,8 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   flagNames: ["", "", "", "", ""],
   timeZone: null,
+  gameReviews: false,
+  lenientAccents: false,
 };
 
 function parseFlagNames(json: string): string[] {
