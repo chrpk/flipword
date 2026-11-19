@@ -23,7 +23,17 @@ export function Toaster() {
           {t.tone === "success" ? (
             <CircleCheck className="size-4 shrink-0 text-review" aria-hidden />
           ) : t.tone === "achievement" ? (
-            <Trophy className="size-4 shrink-0 animate-pop text-learning" style={{ animationDelay: "150ms" }} aria-hidden />
+            t.badgeStyle ? (
+              <span
+                className="-my-1 flex size-7 shrink-0 animate-pop items-center justify-center rounded-full"
+                style={{ ...t.badgeStyle, animationDelay: "150ms" }}
+                aria-hidden
+              >
+                <Trophy className="size-3.5" />
+              </span>
+            ) : (
+              <Trophy className="size-4 shrink-0 animate-pop text-learning" style={{ animationDelay: "150ms" }} aria-hidden />
+            )
           ) : (
             <CircleAlert className={clsx("size-4 shrink-0 text-destructive")} aria-hidden />
           )}

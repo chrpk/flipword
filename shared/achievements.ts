@@ -30,6 +30,18 @@ export function parseAchievementId(id: string): { track: AchievementTrack; goal:
   return (ACHIEVEMENT_TRACKS[track] as readonly number[]).includes(goal) ? { track, goal } : null;
 }
 
+/** Medal grades, lowest first. Each track's tiers are spread over them, so its last tier is always the top grade. */
+export const ACHIEVEMENT_GRADES = ["bronze", "silver", "gold", "platinum", "diamond"] as const;
+
+export type AchievementGrade = (typeof ACHIEVEMENT_GRADES)[number];
+
+/** Grade of a tier by its position in the track: tracks have 7–9 tiers, so each grade covers one or two. */
+export function achievementGrade(track: AchievementTrack, goal: number): AchievementGrade {
+  const goals = ACHIEVEMENT_TRACKS[track] as readonly number[];
+  const index = Math.max(0, goals.indexOf(goal));
+  return ACHIEVEMENT_GRADES[Math.floor((index * ACHIEVEMENT_GRADES.length) / goals.length)];
+}
+
 /** Ids of every tier whose goal `values` reach. */
 export function reachedAchievements(values: Record<AchievementTrack, number>) {
   return ACHIEVEMENT_TRACK_IDS.flatMap((track) =>

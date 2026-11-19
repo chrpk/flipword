@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { achievementGrade, type AchievementGrade } from "../../shared/achievements";
 import type { AchievementTrackProgress } from "../../shared/types";
 import { Card, ErrorState, PageSpinner, Progress } from "../components/ui";
 import { cx } from "../components/classes";
-import { TRACK_META, useAchievementName } from "../features/achievements/meta";
+import { GRADE_META, TRACK_META, medalStyle, useAchievementName } from "../features/achievements/meta";
 import { api, queryKeys } from "../lib/api";
 import { formatDate, formatNumber } from "../lib/format";
 
@@ -45,7 +46,10 @@ function TrackCard({ progress, currentStreak }: { progress: AchievementTrackProg
         {next ? (
           <>
             <div className="mb-2 flex items-baseline justify-between gap-3 text-sm">
-              <span>{t("achievements.next", { name: name(track, next.goal) })}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <span>{t("achievements.next", { name: name(track, next.goal) })}</span>
+                <GradeLabel grade={achievementGrade(track, next.goal)} />
+              </span>
               <span className="text-muted-foreground tabular-nums">
                 {formatNumber(lang, value)} / {formatNumber(lang, next.goal)}
               </span>
@@ -66,18 +70,24 @@ function TrackCard({ progress, currentStreak }: { progress: AchievementTrackProg
         {tiers.map((tier) => {
           const unlocked = tier.unlockedAt !== null;
           const label = name(track, tier.goal);
+          const grade = achievementGrade(track, tier.goal);
+          const gradeName = t(`achievements.grade.${grade}`);
           const status = unlocked
             ? t("achievements.unlockedOn", { date: formatDate(lang, tier.unlockedAt!) })
             : t("achievements.locked");
           return (
-            <li key={tier.id} className="flex w-14 flex-col items-center gap-1.5" title={`${label} · ${status}`}>
+            <li key={tier.id} className="flex w-14 flex-col items-center gap-1.5" title={`${label} · ${gradeName} · ${status}`}>
               <span
                 className={cx(
                   "flex size-12 items-center justify-center rounded-full",
-                  // The ring takes the track colour from `color` (currentColor).
-                  unlocked ? "ring-2 ring-inset" : "border border-dashed bg-muted/50 text-muted-foreground",
+                  unlocked ? undefined : "border-2 border-dashed bg-muted/50 text-muted-foreground",
                 )}
-                style={unlocked ? { color, backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)` } : undefined}
+                // Locked tiers keep a hint of their metal in the dashed rim, so the ladder reads ahead of time.
+                style={
+                  unlocked
+                    ? medalStyle(grade)
+                    : { borderColor: `color-mix(in srgb, ${GRADE_META[grade].accent} 45%, hsl(var(--border)))` }
+                }
               >
                 {unlocked ? <Icon className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
               </span>
@@ -85,13 +95,24 @@ function TrackCard({ progress, currentStreak }: { progress: AchievementTrackProg
                 {formatNumber(lang, tier.goal)}
               </span>
               <span className="sr-only">
-                {label}, {status}
+                {label}, {gradeName}, {status}
               </span>
             </li>
           );
         })}
       </ul>
     </Card>
+  );
+}
+
+/** Chip naming a grade ("Gold") beside a tiny medal; the text stays in the foreground colour for contrast. */
+function GradeLabel({ grade }: { grade: AchievementGrade }) {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+      <span className="size-2.5 rounded-full" style={medalStyle(grade)} aria-hidden />
+      {t(`achievements.grade.${grade}`)}
+    </span>
   );
 }
 

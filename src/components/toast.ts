@@ -1,4 +1,13 @@
-export type Toast = { id: number; message: string; tone: "success" | "error" | "achievement"; leaving?: boolean };
+import type { CSSProperties } from "react";
+
+export type Toast = {
+  id: number;
+  message: string;
+  tone: "success" | "error" | "achievement";
+  /** Achievement toasts: the medal look behind the trophy. */
+  badgeStyle?: CSSProperties;
+  leaving?: boolean;
+};
 
 /** How long a toast takes to fade out; matches `.toast-out`. */
 const LEAVE_MS = 200;
@@ -11,9 +20,9 @@ function emit() {
   for (const l of listeners) l();
 }
 
-function push(message: string, tone: Toast["tone"]) {
+function push(message: string, tone: Toast["tone"], badgeStyle?: CSSProperties) {
   const id = nextId++;
-  toasts = [...toasts.slice(-2), { id, message, tone }];
+  toasts = [...toasts.slice(-2), { id, message, tone, badgeStyle }];
   emit();
   setTimeout(() => {
     toasts = toasts.map((t) => (t.id === id ? { ...t, leaving: true } : t));
@@ -28,7 +37,7 @@ function push(message: string, tone: Toast["tone"]) {
 export const toast = {
   success: (message: string) => push(message, "success"),
   error: (message: string) => push(message, "error"),
-  achievement: (message: string) => push(message, "achievement"),
+  achievement: (message: string, badgeStyle?: CSSProperties) => push(message, "achievement", badgeStyle),
 };
 
 /** For useSyncExternalStore in <Toaster>. */
